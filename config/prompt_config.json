@@ -1,0 +1,31 @@
+{
+  "template_dir": "data/prompt_templates",
+  "random_seed": 42,
+  "templates": [
+    {
+      "name": "analysis",
+      "file": "analysis.txt",
+      "count": 3,
+      "variables": {
+        "topic": [
+          "renewable energy policy",
+          "edge AI deployment",
+          "consumer hardware benchmarking"
+        ],
+        "audience": [
+          "technical report",
+          "executive summary"
+        ]
+      }
+    },
+    {
+      "name": "story",
+      "file": "story.txt",
+      "count": 2,
+      "variables": {
+        "character": ["student", "engineer"],
+        "setting": ["campus lab", "home workstation"]
+      }
+    }
+  ]
+}
