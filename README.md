@@ -79,8 +79,8 @@ These instructions target **Windows 11** so you can complete the entire workflow
 
 ```powershell
 git clone https://github.com/ggerganov/llama.cpp.git
-git clone https://github.com/<your-org>/MachineLearning.git
-cd MachineLearning
+git clone https://github.com/csce585-mlsystems/Energy-Aware-LLM-Inference-on-Consumer-Hardware.git
+cd Energy-Aware-LLM-Inference-on-Consumer-Hardware
 ```
 
 ### 2. Build `llama.cpp`
