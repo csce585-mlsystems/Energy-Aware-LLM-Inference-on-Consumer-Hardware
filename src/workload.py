@@ -17,12 +17,11 @@ def load_manual_prompts(path: Path) -> List[Prompt]:
     The JSON can either be a list of strings or a list of objects with
     ``{"id": "...", "text": "...", "template": "..."}``.
     """
-
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:  # pragma: no cover - defensive
+    except FileNotFoundError as exc:  # defensive
         raise RuntimeError(f"Prompt file not found: {path}") from exc
-    except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+    except json.JSONDecodeError as exc:  # defensive
         raise RuntimeError(f"Prompt file contains invalid JSON: {path}") from exc
 
     prompts: List[Prompt] = []
@@ -75,6 +74,13 @@ def run_prompts(
         tokens_generated: Optional[int] = None
         notes = ""
 
+        # --- NEW: record CPU power if running CPU backend ---
+        if backend == "cpu" and not dry_run:
+            try:
+                logger.record_cpu_power(duration=5, notes=f"prompt={prompt.id}")
+            except Exception as e:
+                print(f"⚠️ CPU power logging failed: {e}")
+
         if dry_run:
             # Simulate work to allow integration testing without llama.cpp.
             time.sleep(0.05)
@@ -104,7 +110,7 @@ def run_prompts(
                     text=True,
                 )
                 output_text = result.stdout.strip()
-            except subprocess.CalledProcessError as exc:  # pragma: no cover - defensive
+            except subprocess.CalledProcessError as exc:  # defensive
                 output_text = exc.stdout or ""
                 notes = f"llama.cpp exited with {exc.returncode}"
 
@@ -119,7 +125,7 @@ def run_prompts(
             prompt_length=prompt.length_chars,
             latency_ms=latency_ms,
             tokens_generated=tokens_generated,
-            energy_joules=None,
+            energy_joules=None,  # GPU will add energy later
             notes=notes,
         )
 
