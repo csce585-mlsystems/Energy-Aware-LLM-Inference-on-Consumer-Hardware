@@ -108,6 +108,8 @@ def run_prompts(
                     check=True,
                     capture_output=True,
                     text=True,
+                    encoding="utf-8",
+                    errors="ignore"
                 )
                 output_text = result.stdout.strip()
             except subprocess.CalledProcessError as exc:  # defensive
