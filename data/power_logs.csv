@@ -1,0 +1,3 @@
+timestamp,backend,energy_joules,notes
+2025-10-01T22:52:04.560,cpu,48.239673913043475,prompt=baseline-001
+2025-10-01T23:13:45.566,cpu,20.220108695652176,prompt=baseline-001
