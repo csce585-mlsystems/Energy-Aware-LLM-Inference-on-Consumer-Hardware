@@ -65,8 +65,7 @@ Each prompt suite is committed under `data/prompts/{sd,ar,ng}.jsonl`. A configur
 ### 3.1 Experimental Protocol
 1. For each prompt suite (SD, AR, NG) and backend (CPU, GPU), run three independent trials with fixed seeds (captured in consolidated CSV files).
 2. Record per-trial CSV logs under `data/measurements/p1/{backend}/{suite}/run_metrics.csv`.
-3. Aggregate metrics using `uv run python src/analysis/p1_summary.py`, which produces `doc/p1_metrics_summary.csv` and plots in `doc/figures/`.
-
+   
 ### 3.2 Key Metrics
 - **Energy per Output Token (J/token)** — CPU package or GPU board energy divided by generated tokens.
 - **Average Latency (ms/token)** — Mean wall-clock time per generated token.
