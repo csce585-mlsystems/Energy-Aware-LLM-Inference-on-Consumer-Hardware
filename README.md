@@ -19,7 +19,6 @@ Large language models enable rich conversational applications but impose heavy e
 - Implemented a unified runner (`src/run_session.py`) that loads YAML experiment manifests and executes CPU/GPU trials with consistent telemetry logging.
 - Curated prompt suites for short dialogue, analytical reasoning, and narrative generation stored in `data/prompts/*.jsonl`.
 - Produced Milestone P1 results comparing energy per token, latency, and energy-delay product for CPU vs. GPU pipelines, with plots generated via `src/analysis/p1_summary.py`.
-- Documented reproduction workflow (this README, `doc/Milestone P1 — Initial Experiment and Evaluation Setup.md`, and `doc/milestone_p1_checklist.md`) covering environment setup, data management, and submission logistics.
 
 ## Milestone P1 Reproduction
 Follow these steps on a workstation with both CPU and NVIDIA GPU access.
