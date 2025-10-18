@@ -1,0 +1,3 @@
+{"id": "ar-001", "text": "A student solved 12 practice problems per day for 5 days and then doubled the count for the weekend. How many problems were solved in total? Explain your reasoning.", "template": "analytical_reasoning"}
+{"id": "ar-002", "text": "During a benchmarking session, the CPU backend used 2.4 joules per token while generating 180 tokens. Estimate the total energy in watt-hours consumed, showing intermediate steps.", "template": "analytical_reasoning"}
+{"id": "ar-003", "text": "Design a quick experiment to verify whether batching four prompts improves GPU throughput for TinyLlama. Include metrics and hypotheses.", "template": "analytical_reasoning"}

@@ -1,0 +1,1 @@
+Tell a short narrative about a {character} benchmarking TinyLlama in a {setting}. Highlight how they balance accuracy, latency, and energy.

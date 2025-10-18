@@ -1,0 +1,12 @@
+[
+  {
+    "id": "baseline-001",
+    "template": "manual",
+    "text": "Summarize the latency and energy trade-offs between CPU and GPU inference for TinyLlama on consumer hardware."
+  },
+  {
+    "id": "baseline-002",
+    "template": "manual",
+    "text": "List three configuration tweaks that improve GPU inference efficiency when using llama.cpp."
+  }
+]

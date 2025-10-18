@@ -1,0 +1,51 @@
+# Experiment manifest for Milestone P1 runs.
+defaults:
+  llama_binary: ../llama.cpp/build/bin/llama-cli
+  model: data/models/TinyLlama-1.1B-Chat-v1.0.Q4_0.gguf
+  prompt_config: config/prompt_config.json
+  temperature: 0.1
+  n_predict: 256
+  gpu_layers: 40
+
+runs:
+  - id: sd-cpu-b1
+    suite: short_dialogue
+    backend: cpu
+    prompt_source: manual
+    prompt_file: data/prompts/sd.jsonl
+    batch_size: 1
+
+  - id: sd-gpu-b4
+    suite: short_dialogue
+    backend: gpu
+    prompt_source: manual
+    prompt_file: data/prompts/sd.jsonl
+    batch_size: 4
+
+  - id: ar-cpu-b1
+    suite: analytical_reasoning
+    backend: cpu
+    prompt_source: manual
+    prompt_file: data/prompts/ar.jsonl
+    batch_size: 1
+
+  - id: ar-gpu-b4
+    suite: analytical_reasoning
+    backend: gpu
+    prompt_source: manual
+    prompt_file: data/prompts/ar.jsonl
+    batch_size: 4
+
+  - id: ng-cpu-b1
+    suite: narrative_generation
+    backend: cpu
+    prompt_source: manual
+    prompt_file: data/prompts/ng.jsonl
+    batch_size: 1
+
+  - id: ng-gpu-b4
+    suite: narrative_generation
+    backend: gpu
+    prompt_source: manual
+    prompt_file: data/prompts/ng.jsonl
+    batch_size: 4

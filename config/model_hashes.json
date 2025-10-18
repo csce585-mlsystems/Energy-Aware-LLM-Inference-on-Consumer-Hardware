@@ -1,0 +1,10 @@
+{
+  "TinyLlama-1.1B-Chat-v1.0.Q4_0.gguf": {
+    "sha256": "b39efb0a6a9e2bff7d1adfb04f083f12b0c3e5d9d89ef5a961f1ce88ef5aab12",
+    "size_bytes": 1320219648
+  },
+  "TinyLlama-1.1B-Chat-v1.0.Q5_1.gguf": {
+    "sha256": "4c5a7df4f8e563961afdbf24fb7580f2051c9a8e39e1d7c8a34dcb6f4fcf27d1",
+    "size_bytes": 1647824200
+  }
+}

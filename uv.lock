@@ -1,0 +1,62 @@
+version = 1
+
+[metadata]
+requires-python = ">=3.11"
+
+[[package]]
+name = "numpy"
+version = "1.26.4"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "pandas"
+version = "2.2.2"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "plotly"
+version = "5.22.0"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "polars"
+version = "0.20.18"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "pynvml"
+version = "11.5.0"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "pyyaml"
+version = "6.0.1"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "rich"
+version = "13.7.1"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "matplotlib"
+version = "3.8.4"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "seaborn"
+version = "0.13.2"
+source = { registry = "https://pypi.org/simple" }
+
+[resolution]
+dependencies = [
+  { name = "numpy", version = "1.26.4" },
+  { name = "pandas", version = "2.2.2" },
+  { name = "plotly", version = "5.22.0" },
+  { name = "polars", version = "0.20.18" },
+  { name = "pynvml", version = "11.5.0" },
+  { name = "pyyaml", version = "6.0.1" },
+  { name = "rich", version = "13.7.1" },
+  { name = "matplotlib", version = "3.8.4" },
+  { name = "seaborn", version = "0.13.2" }
+]

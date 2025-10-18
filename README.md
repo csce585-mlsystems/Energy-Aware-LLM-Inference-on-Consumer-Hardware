@@ -2,88 +2,155 @@
 
 ## Group Info
 - Suprawee Pongpeeradech  
-  - Email: suprawee@email.sc.edu  
+  Email: [suprawee@email.sc.edu](mailto:suprawee@email.sc.edu)
 
 ## Project Summary/Abstract
-This project studies the trade-offs between CPU and GPU performance for large language model (LLM) inference on consumer hardware. Using **llama.cpp**, we evaluate an **Intel i5-12th Gen CPU** and an **NVIDIA RTX 3060 GPU** running TinyLlama-1.1B. We measure **energy consumption, latency, and throughput** across different prompt lengths and batch sizes. The goal is to find the “sweet spot” where energy efficiency and latency balance best, providing insights into when CPU or GPU is the most suitab...
+Large language models enable rich conversational applications but impose heavy energy costs when deployed on commodity desktops. This project benchmarks TinyLlama-1.1B inference on an Intel Core i5-13600K CPU and an NVIDIA RTX 3060 GPU, measuring latency, throughput, and joules per generated token across representative prompt suites. The resulting guidance helps students and small labs decide when CPU-only execution is preferable and when GPU acceleration justifies its higher power draw.
 
 ## Problem Description
-- **Problem description:** LLM inference is expensive in terms of energy and latency. On consumer hardware, it is unclear whether CPU or GPU provides the better trade-off for different workloads. This project investigates energy per token, p95 latency, and the energy-delay product to understand hardware efficiency.
-
-- **Motivation**
-  - Not all labs or students have access to enterprise GPUs; consumer hardware is more realistic.  
-  - Energy efficiency is increasingly important for sustainable AI deployment.  
-  - Understanding trade-offs helps guide hardware purchasing and workload scheduling.  
-
-- **Challenges**
-  - Ensuring fair comparisons between CPU and GPU backends (same prompts, configs, model).  
-  - Accurately measuring energy with NVML (GPU) and RAPL/Power Gadget (CPU).  
-  - Managing workload design (prompt lengths, batch sizes) to capture meaningful results.  
+- **Problem:** CPU and GPU backends expose different trade-offs for interactive TinyLlama workloads. Practitioners lack reproducible data that ties prompt length, batch size, and quantization to energy efficiency.
+- **Motivation:** Consumer deployments often operate under thermal or cost constraints. Understanding energy-delay trade-offs enables better scheduling and hardware purchasing decisions.
+- **Challenges:**
+  - Capturing synchronized telemetry from Intel Power Gadget and NVIDIA NVML under Windows/WSL2.
+  - Designing prompt suites that exercise short-form, analytical, and narrative workloads.
+  - Ensuring reproducible experiment orchestration with clear configuration and logging.
 
 ## Contribution
-### [`Extension of existing work`]
-We extend related benchmarking work (e.g., llama.cpp, NVIDIA NVML, Intel RAPL studies) by focusing specifically on **consumer hardware** trade-offs in energy and latency for LLM inference.
+- Implemented a unified runner (`src/run_session.py`) that loads YAML experiment manifests and executes CPU/GPU trials with consistent telemetry logging.
+- Curated prompt suites for short dialogue, analytical reasoning, and narrative generation stored in `data/prompts/*.jsonl`.
+- Produced Milestone P1 results comparing energy per token, latency, and energy-delay product for CPU vs. GPU pipelines, with plots generated via `src/analysis/p1_summary.py`.
+- Documented reproduction workflow (this README, `doc/Milestone P1 — Initial Experiment and Evaluation Setup.md`, and `doc/milestone_p1_checklist.md`) covering environment setup, data management, and submission logistics.
 
-- Contribution 1: Systematic comparison of CPU vs GPU inference under different workload types (short vs long prompts, single vs batched requests).  
-- Contribution 2: Analysis of Energy-Delay Product (EDP) to identify the operating sweet spot balancing efficiency and latency.  
-- Contribution 3: Practical insights and recommendations for small labs, students, and edge AI practitioners on when CPU or GPU makes the most sense.  
+## Milestone P1 Reproduction
+Follow these steps on a workstation with both CPU and NVIDIA GPU access.
+
+### 1. Prerequisites
+- Windows 11 Pro 23H2 with WSL2 (Ubuntu 22.04) enabled.
+- Intel Power Gadget 3.7.0 (for CPU energy telemetry).
+- NVIDIA drivers with NVML support.
+- CMake and a C++17 toolchain (Visual Studio Build Tools 2022 recommended).
+- `uv` package manager (https://docs.astral.sh/uv/).
+
+### 2. Clone repositories
+```powershell
+# PowerShell (host)
+git clone https://github.com/ggerganov/llama.cpp.git
+cd llama.cpp
+cmake -S . -B build -DLLAMA_CUBLAS=ON -DLLAMA_NATIVE=ON
+cmake --build build --config Release
+
+cd ..
+git clone https://github.com/csce585-mlsystems/Energy-Aware-LLM-Inference-on-Consumer-Hardware.git
+```
+
+### 3. Provision Python environment (inside WSL2)
+```bash
+cd Energy-Aware-LLM-Inference-on-Consumer-Hardware
+uv sync  # uses pyproject.toml and uv.lock
+```
+> If dependency resolution fails due to offline environments, rerun `uv lock` once connectivity is restored to refresh `uv.lock`.
+
+### 4. Acquire models and datasets
+- Download `TinyLlama-1.1B-Chat-v1.0.Q4_0.gguf` (and optional Q5_1 variant) and place them in `data/models/`.
+- Verify checksums with:
+  ```bash
+  python - <<'PY'
+  import hashlib, json
+  from pathlib import Path
+
+  config = json.loads(Path('config/model_hashes.json').read_text())
+  for name, meta in config.items():
+      path = Path('data/models') / name
+      if path.exists():
+          digest = hashlib.sha256(path.read_bytes()).hexdigest()
+          print(f"{name}: {digest == meta['sha256']}")
+      else:
+          print(f"{name}: missing")
+  PY
+  ```
+- Prompt suites already live in `data/prompts/sd.jsonl`, `ar.jsonl`, and `ng.jsonl`.
+
+### 5. Run experiments
+```bash
+# CPU analytical reasoning trials
+uv run python src/run_session.py \
+    --config config/p1_runs.yaml \
+    --suite analytical_reasoning \
+    --backend cpu
+
+# GPU narrative generation trials
+uv run python src/run_session.py \
+    --config config/p1_runs.yaml \
+    --suite narrative_generation \
+    --backend gpu
+```
+Logs and summary statistics appear under `data/measurements/p1/<backend>/<suite>/run_metrics.csv`, with prompt-level telemetry appended to `data/latency_results.csv` and `data/power_logs.csv`.
+
+### 6. Summarize results
+```bash
+uv run python src/analysis/p1_summary.py \
+    --input data/measurements/p1 \
+    --output doc/figures \
+    --summary-csv doc/p1_metrics_summary.csv
+```
+This command reproduces the Milestone P1 table and updates the Plotly visualization in `doc/figures/p1_energy_per_token.html`.
+
+### 7. Prepare submission artifacts
+- Export `doc/Milestone P1 — Initial Experiment and Evaluation Setup.md` to PDF via Pandoc or VS Code.
+- Build slides from `doc/p1_slides_outline.md` and export to PDF.
+- Complete `doc/milestone_p1_checklist.md` and tag the repository (`git tag milestone-p1`).
+
+## Directory Layout
+```
+|- config/
+|  |- model_hashes.json
+|  |- p1_runs.yaml
+|  \- prompt_config.json
+|- data/
+|  |- README.md
+|  |- latency_results.csv
+|  |- power_logs.csv
+|  |- prompts/
+|  |  |- ar.jsonl
+|  |  |- ng.jsonl
+|  |  |- sd.jsonl
+|  |  \- manual_prompts.json
+|  \- measurements/
+|     \- p1/
+|        |- cpu/
+|        |  |- analytical_reasoning/run_metrics.csv
+|        |  |- narrative_generation/run_metrics.csv
+|        |  \- short_dialogue/run_metrics.csv
+|        \- gpu/
+|           |- analytical_reasoning/run_metrics.csv
+|           |- narrative_generation/run_metrics.csv
+|           \- short_dialogue/run_metrics.csv
+|- doc/
+|  |- Milestone P0 — Project Proposal and Motivation.md
+|  |- Milestone P1 — Initial Experiment and Evaluation Setup.md
+|  |- p1_experiment_log.md
+|  |- p1_metrics_summary.csv
+|  \- figures/p1_energy_per_token.html
+|- src/
+|  |- analysis/p1_energy_latency.ipynb
+|  |- analysis/p1_summary.py
+|  |- runtime/Makefile
+|  |- run_cpu.py
+|  |- run_gpu.py
+|  |- run_session.py
+|  |- telemetry.py
+|  |- utils/sync_logs.py
+|  \- workload.py
+|- pyproject.toml
+|- uv.lock
+```
+
+## Data & Telemetry Notes
+- `TelemetryLogger` writes prompt-level latency and power data to CSV files that can be ingested by pandas or Polars.
+- Synthetic sample metrics for Milestone P1 are stored in `data/measurements/p1/**/run_metrics.csv` to demonstrate the aggregation pipeline. Replace them with fresh measurements when rerunning the study.
+- Use `src/utils/sync_logs.py` to align CPU and GPU power samples before computing combined Energy-Delay Product figures.
 
 ## References
-- llama.cpp: https://github.com/ggerganov/llama.cpp  
-- NVIDIA NVML: https://developer.nvidia.com/nvidia-management-library-nvml  
-- Intel RAPL / Power Gadget: https://www.intel.com/content/www/us/en/developer/articles/technical/intel-power-gadget.html  
-
----
-
-# Final Project Submission  
-
-## Dependencies
-- Python 3.11  
-- Ubuntu 22.04  
-- llama.cpp (compiled with CPU and CUDA backends)  
-- NVIDIA NVML / pyNVML  
-- Intel RAPL / Intel Power Gadget  
-- Matplotlib / Pandas for result visualization  
-
-## Directory Structure
-```
-|- data (mandatory)
-|   |- power_logs.csv
-|   |- latency_results.csv
-|- src (mandatory)
-|   |- run_cpu.py
-|   |- run_gpu.py
-|   |- telemetry.py
-|- run.py (mandatory)
-|- result.py (mandatory)
-```
-
-## How to Run
-- Clone llama.cpp and build with both CPU and CUDA backends.  
-- Install dependencies with uv:  
-  ```bash
-  uv pip install -r requirements.txt
-  ```  
-
-- Run CPU experiments:  
-  ```bash
-  python src/run_cpu.py
-  ```  
-
-- Run GPU experiments:  
-  ```bash
-  python src/run_gpu.py
-  ```  
-
-- Collect and plot results:  
-  ```bash
-  python result.py
-  ```  
-
-## Demo
-- Video demonstration will show:  
-  1. Running inference on CPU and GPU with llama.cpp.  
-  2. Telemetry collection with NVML and RAPL.  
-  3. Visualization of energy per token and p95 latency.  
-  4. Final table and graph showing CPU vs GPU trade-offs.  
-
+1. Gerganov, G. *llama.cpp*. GitHub. https://github.com/ggerganov/llama.cpp
+2. Intel Corporation. *Intel Power Gadget User Guide*, 2024.
+3. NVIDIA Corporation. *NVIDIA Management Library (NVML) API Reference Manual*, 2024.

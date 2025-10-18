@@ -1,0 +1,3 @@
+{"id": "sd-001", "text": "You are a helpful assistant. Summarize the following note in two sentences: The campus energy audit highlighted that classrooms waste electricity when lights remain on overnight.", "template": "short_dialogue"}
+{"id": "sd-002", "text": "Provide a concise weather report for Columbia, SC based on these readings: temperature 78F, humidity 65%, wind 10mph southwest.", "template": "short_dialogue"}
+{"id": "sd-003", "text": "Role-play as a lab TA responding to a student who cannot launch llama.cpp due to missing CUDA drivers. Give two troubleshooting steps.", "template": "short_dialogue"}

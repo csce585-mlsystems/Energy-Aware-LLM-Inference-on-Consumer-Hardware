@@ -1,0 +1,4 @@
+trial,energy_j_per_token,avg_latency_ms_per_token,p95_latency_ms_per_token
+1,2.77,46.2,64.2
+2,2.9,47.9,67.8
+3,2.97,49.6,70.5

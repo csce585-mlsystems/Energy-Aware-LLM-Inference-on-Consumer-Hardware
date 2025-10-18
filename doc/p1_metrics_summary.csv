@@ -1,0 +1,7 @@
+Prompt Suite,Backend,Energy (J/token),Avg Latency (ms/token),P95 Latency (ms/token),EDP (J·ms/token)
+SD,CPU,2.41,38.7,54.2,93.3
+SD,GPU,3.05,21.4,29.7,65.3
+AR,CPU,2.88,47.9,67.5,138.1
+AR,GPU,2.96,24.6,34.8,72.9
+NG,CPU,3.56,59.3,81.0,211.1
+NG,GPU,2.79,33.2,48.6,92.6
