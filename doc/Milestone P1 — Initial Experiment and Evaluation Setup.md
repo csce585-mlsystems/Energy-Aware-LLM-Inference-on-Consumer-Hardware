@@ -28,7 +28,6 @@
 | `llama.cpp` | Commit `c1a9bc7` (Oct 10, 2025) | Built with `LLAMA_CUBLAS=1` and `LLAMA_NATIVE=1` |
 | TinyLlama model | `TinyLlama-1.1B-Chat-v1.0.Q4_0.gguf` | Stored under `data/models/` with checksum `b39e...` |
 | Telemetry harness | `src/run_session.py` | Launches inference and streams telemetry |
-| Analysis notebooks | `src/analysis/p1_energy_latency.ipynb` | Generates plots and summary tables |
 
 All dependencies are locked in `pyproject.toml` and `uv.lock` at the repository root. Installing the environment and building `llama.cpp` can be reproduced with:
 ```bash
@@ -104,9 +103,6 @@ Each prompt suite is committed under `data/prompts/{sd,ar,ng}.jsonl`. A configur
       --suite analytical_reasoning \
       --backend cpu
 
-  # Aggregate metrics and generate figures
-  uv run python src/analysis/p1_summary.py --input data/measurements/p1 --output doc/figures
-  ```
 - **Data Management:**
   - Raw telemetry logs stored under `data/measurements/p1/` (repository includes representative samples for documentation; replace with fresh logs after reruns).
   - Derived metrics and plots exported to `doc/figures/` for inclusion in slides.
@@ -132,7 +128,6 @@ Each prompt suite is committed under `data/prompts/{sd,ar,ng}.jsonl`. A configur
 - Export this Markdown to `doc/Milestone P1 — Initial Experiment and Evaluation Setup.pdf` before submission.
 - Slide outline tracked in `doc/p1_slides_outline.md` (export to PDF before submission).
 - Updated `README.md` with reproduction instructions and dependency checklist.
-- Reproducible telemetry logs and analysis scripts in the repository (`data/measurements/p1`, `src/analysis/`).
 
 ## References
 [1] G. Gerganov. `llama.cpp`. GitHub repository. https://github.com/ggerganov/llama.cpp
