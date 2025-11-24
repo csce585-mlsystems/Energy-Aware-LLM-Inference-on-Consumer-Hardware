@@ -7,13 +7,15 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "matplotlib>=3.10.7",
     "numpy>=1.26",
     "pandas>=2.2",
     "plotly>=5.22",
     "polars>=0.20",
     "pynvml>=11.5",
     "pyyaml>=6.0",
-    "rich>=13.7"
+    "rich>=13.7",
+    "seaborn>=0.13.2",
 ]
 
 [project.optional-dependencies]

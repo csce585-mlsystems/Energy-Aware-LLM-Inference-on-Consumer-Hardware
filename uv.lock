@@ -102,6 +102,7 @@ name = "energy-aware-llm"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "matplotlib" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "plotly" },
@@ -109,6 +110,7 @@ dependencies = [
     { name = "pynvml" },
     { name = "pyyaml" },
     { name = "rich" },
+    { name = "seaborn" },
 ]
 
 [package.optional-dependencies]
@@ -119,6 +121,7 @@ analysis = [
 
 [package.metadata]
 requires-dist = [
+    { name = "matplotlib", specifier = ">=3.10.7" },
     { name = "matplotlib", marker = "extra == 'analysis'", specifier = ">=3.8" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pandas", specifier = ">=2.2" },
@@ -127,6 +130,7 @@ requires-dist = [
     { name = "pynvml", specifier = ">=11.5" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rich", specifier = ">=13.7" },
+    { name = "seaborn", specifier = ">=0.13.2" },
     { name = "seaborn", marker = "extra == 'analysis'", specifier = ">=0.13" },
 ]
 provides-extras = ["analysis"]
