@@ -1,4 +1,3 @@
 {"id": "ng-001", "text": "Write the opening paragraph of a science fiction story where a citywide blackout reveals hidden rooftop gardens maintained by autonomous drones.", "template": "narrative_generation"}
 {"id": "ng-002", "text": "Compose a short narrative about a graduate student optimizing TinyLlama for energy efficiency while preparing for a project presentation.", "template": "narrative_generation"}
-{"id": "ng-003", "text": "Continue the story: 'Every evening the workstation hummed with GPU fans until Lena discovered the scheduler that let TinyLlama rest.'",
- "template": "narrative_generation"}
+{"id": "ng-003", "text": "Continue the story: 'Every evening the workstation hummed with GPU fans until Lena discovered the scheduler that let TinyLlama rest.'", "template": "narrative_generation"}

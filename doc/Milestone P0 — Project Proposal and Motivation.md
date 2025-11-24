@@ -114,4 +114,3 @@ All required hardware, telemetry tools, and llama.cpp builds are available on th
 [3] R. Kapoor, D. C. Anastasiu, and S. Choi. "ML-NIC: Accelerating Machine Learning Inference using Smart Network Interface Cards." *Frontiers in Computer Science*, 2025.
 
 ---
-*Next Step:* Export this Markdown file to PDF (e.g., via Pandoc or VS Code) and upload it as `Milestone P0 — Project Proposal and Motivation.pdf` inside the `doc/` directory per course instructions.

@@ -18,7 +18,7 @@ class TelemetryLogger:
 
     latency_path: Path = Path("data/latency_results.csv")
     power_path: Path = Path("data/power_logs.csv")
-    powerlog_path: Path = Path(r"C:\Program Files\Intel\Power Gadget 3.7\PowerLog3.exe")
+    powerlog_path: Path = Path(r"C:\Program Files\Intel\Power Gadget 3.6\PowerLog3.0.exe")
 
     _latency_headers: Iterable[str] = field(
         default_factory=lambda: (
@@ -110,6 +110,63 @@ class TelemetryLogger:
         dest_raw = self.power_path.parent / f"raw_cpu_power_{dt.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         shutil.move(str(tmp_file), dest_raw)
         print(f"✅ CPU power logged: {joules:.2f} J (raw CSV saved to {dest_raw})")
+
+    def record_gpu_power(self, duration: int = 5, notes: str = "") -> None:
+        """Sample GPU power using pynvml for a duration."""
+        try:
+            import pynvml
+        except ImportError:
+            print("⚠️ pynvml not installed, skipping GPU power logging")
+            return
+
+        try:
+            pynvml.nvmlInit()
+            handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        except Exception as e:
+            print(f"⚠️ Failed to initialize NVML: {e}")
+            return
+
+        # Sample power every 100ms
+        samples = []
+        start_time = dt.datetime.now()
+        end_time = start_time + dt.timedelta(seconds=duration)
+        
+        import time
+        while dt.datetime.now() < end_time:
+            try:
+                # nvmlDeviceGetPowerUsage returns milliwatts
+                power_mw = pynvml.nvmlDeviceGetPowerUsage(handle)
+                samples.append({
+                    "timestamp": dt.datetime.utcnow().isoformat(timespec="milliseconds"),
+                    "power_w": power_mw / 1000.0
+                })
+            except Exception:
+                pass
+            time.sleep(0.1)
+
+        pynvml.nvmlShutdown()
+
+        if not samples:
+            print("⚠️ No GPU power samples collected")
+            return
+
+        # Compute energy
+        df = pd.DataFrame(samples)
+        avg_watts = df["power_w"].mean()
+        joules = avg_watts * duration
+
+        # Log summary
+        self.log_power_sample({
+            "timestamp": dt.datetime.utcnow().isoformat(timespec="milliseconds"),
+            "backend": "gpu",
+            "energy_joules": joules,
+            "notes": notes,
+        })
+
+        # Save raw log
+        dest_raw = self.power_path.parent / f"raw_gpu_power_{dt.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        df.to_csv(dest_raw, index=False)
+        print(f"✅ GPU power logged: {joules:.2f} J (raw CSV saved to {dest_raw})")
 
 
 __all__ = ["TelemetryLogger"]

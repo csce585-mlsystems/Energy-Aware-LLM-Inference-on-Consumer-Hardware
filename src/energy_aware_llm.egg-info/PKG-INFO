@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: energy-aware-llm
+Version: 0.1.0
+Summary: Energy-aware TinyLlama inference benchmarking on consumer hardware
+Author-email: Suprawee Pongpeeradech <suprawee@email.sc.edu>
+Requires-Python: >=3.11
+Requires-Dist: numpy>=1.26
+Requires-Dist: pandas>=2.2
+Requires-Dist: plotly>=5.22
+Requires-Dist: polars>=0.20
+Requires-Dist: pynvml>=11.5
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: rich>=13.7
+Provides-Extra: analysis
+Requires-Dist: matplotlib>=3.8; extra == "analysis"
+Requires-Dist: seaborn>=0.13; extra == "analysis"

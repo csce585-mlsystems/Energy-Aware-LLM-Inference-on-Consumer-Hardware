@@ -17,6 +17,29 @@ def load_manual_prompts(path: Path) -> List[Prompt]:
     The JSON can either be a list of strings or a list of objects with
     ``{"id": "...", "text": "...", "template": "..."}``.
     """
+    if path.suffix == ".jsonl":
+        prompts: List[Prompt] = []
+        with path.open(encoding="utf-8") as f:
+            for line_num, line in enumerate(f, start=1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    raise RuntimeError(f"Invalid JSON on line {line_num} of {path}") from exc
+                
+                if isinstance(entry, dict):
+                    text = entry.get("text")
+                    if not text:
+                        raise RuntimeError(f"Prompt entry on line {line_num} must include a 'text' field")
+                    prompt_id = entry.get("id") or f"manual-{line_num:03d}"
+                    template = entry.get("template", "manual")
+                    prompts.append(Prompt(id=prompt_id, text=text, template=template))
+                else:
+                    raise RuntimeError(f"JSONL entries must be objects (line {line_num})")
+        return prompts
+
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:  # defensive
@@ -80,6 +103,11 @@ def run_prompts(
                 logger.record_cpu_power(duration=5, notes=f"prompt={prompt.id}")
             except Exception as e:
                 print(f"⚠️ CPU power logging failed: {e}")
+        elif backend == "gpu" and not dry_run:
+            try:
+                logger.record_gpu_power(duration=5, notes=f"prompt={prompt.id}")
+            except Exception as e:
+                print(f"⚠️ GPU power logging failed: {e}")
 
         if dry_run:
             # Simulate work to allow integration testing without llama.cpp.

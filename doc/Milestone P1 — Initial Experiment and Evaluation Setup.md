@@ -73,19 +73,19 @@ Each prompt suite is committed under `data/prompts/{sd,ar,ng}.jsonl`. A configur
 - **Energy-Delay Product (EDP)** — Joules × milliseconds per token.
 
 ### 3.3 Results Snapshot
-| Prompt Suite | Backend | Energy (J/token) ↓ | Avg Latency (ms/token) ↓ | P95 Latency (ms/token) ↓ | EDP (J·ms/token) ↓ |
-|--------------|---------|--------------------|--------------------------|--------------------------|--------------------|
-| SD           | CPU     | 2.41 ± 0.09        | 38.7 ± 1.5               | 54.2 ± 2.1               | 93.3               |
-| SD           | GPU     | 3.05 ± 0.12        | 21.4 ± 0.8               | 29.7 ± 1.4               | 65.3               |
-| AR           | CPU     | 2.88 ± 0.11        | 47.9 ± 2.0               | 67.5 ± 3.2               | 138.1              |
-| AR           | GPU     | 2.96 ± 0.14        | 24.6 ± 1.0               | 34.8 ± 1.7               | 72.9               |
-| NG           | CPU     | 3.56 ± 0.15        | 59.3 ± 2.8               | 81.0 ± 3.7               | 211.1              |
-| NG           | GPU     | 2.79 ± 0.10        | 33.2 ± 1.3               | 48.6 ± 2.0               | 92.6               |
+| Prompt Suite | Backend | Energy (J) | Avg Latency (ms) | EDP (J·s) |
+|--------------|---------|------------|------------------|-----------|
+| SD           | CPU     | 189.69     | 2646.85          | 502.07    |
+| SD           | GPU     | 158.73     | 1269.35          | 201.48    |
+| AR           | CPU     | 212.78     | 2184.88          | 464.90    |
+| AR           | GPU     | 158.63     | 1115.80          | 177.00    |
+| NG           | CPU     | 208.20     | 5175.11          | 1077.44   |
+| NG           | GPU     | 176.54     | 5058.55          | 893.04    |
 
 **Observations.**
-- GPU acceleration consistently halves latency but is only energy-favorable for the narrative (NG) workload; CPU retains an energy advantage for short dialogue prompts.
-- CPU batch scaling to 2 reduces latency by ~18% but increases joules/token by 9%, suggesting diminishing returns beyond batch size 1 on this hardware.
-- Tail latency strongly correlates with energy usage on CPU, motivating dynamic backend selection based on prompt length.
+- **GPU Efficiency:** The GPU is consistently more efficient than the CPU, consuming ~16-25% less energy per task across all suites.
+- **Latency Advantage:** GPU acceleration provides a significant speedup (approx. 2x) for Short Dialogue and Analytical Reasoning tasks.
+- **Narrative Generation:** For longer generation tasks (NG), the latency gap narrows, but the GPU still maintains an energy advantage.
 
 ## 4. Documentation and Reproducibility
 - **Repository Hygiene:**
@@ -101,6 +101,7 @@ Each prompt suite is committed under `data/prompts/{sd,ar,ng}.jsonl`. A configur
       --config config/p1_runs.yaml \
       --suite analytical_reasoning \
       --backend cpu
+  ```
 
 - **Data Management:**
   - Raw telemetry logs stored under `data/measurements/p1/` (repository includes representative samples for documentation; replace with fresh logs after reruns).
@@ -142,4 +143,3 @@ Each prompt suite is committed under `data/prompts/{sd,ar,ng}.jsonl`. A configur
 [6] Fan, A., et al. "NarrativeQA: Reading Comprehension Challenge for Long Narratives." *ACL*, 2018.
 
 ---
-*Export Note:* Convert this Markdown file to PDF (e.g., `pandoc "Milestone P1 — Initial Experiment and Evaluation Setup.md" -o "Milestone P1 — Initial Experiment and Evaluation Setup.pdf"`) before uploading to the course portal.

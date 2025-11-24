@@ -1,0 +1,16 @@
+README.md
+pyproject.toml
+src/plot_cpu_power.py
+src/prompt_generator.py
+src/run_cpu.py
+src/run_gpu.py
+src/run_session.py
+src/telemetry.py
+src/workload.py
+src/analysis/p1_summary.py
+src/energy_aware_llm.egg-info/PKG-INFO
+src/energy_aware_llm.egg-info/SOURCES.txt
+src/energy_aware_llm.egg-info/dependency_links.txt
+src/energy_aware_llm.egg-info/requires.txt
+src/energy_aware_llm.egg-info/top_level.txt
+src/utils/sync_logs.py

@@ -1,6 +1,6 @@
 # Experiment manifest for Milestone P1 runs.
 defaults:
-  llama_binary: ../llama.cpp/build/bin/llama-cli
+  llama_binary: ../llama.cpp/build/bin/llama-cli.exe
   model: data/models/TinyLlama-1.1B-Chat-v1.0.Q4_0.gguf
   prompt_config: config/prompt_config.json
   temperature: 0.1

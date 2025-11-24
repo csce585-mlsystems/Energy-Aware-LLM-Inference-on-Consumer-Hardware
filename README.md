@@ -71,75 +71,43 @@ uv sync  # uses pyproject.toml and uv.lock
 
 ### 5. Run experiments
 ```bash
-# CPU analytical reasoning trials
-uv run python src/run_session.py \
-    --config config/p1_runs.yaml \
-    --suite analytical_reasoning \
-    --backend cpu
-
-# GPU narrative generation trials
-uv run python src/run_session.py \
-    --config config/p1_runs.yaml \
-    --suite narrative_generation \
-    --backend gpu
+# Run full session (CPU & GPU for all suites)
+uv run python src/run_session.py
 ```
-Logs and summary statistics appear under `data/measurements/p1/<backend>/<suite>/run_metrics.csv`, with prompt-level telemetry appended to `data/latency_results.csv` and `data/power_logs.csv`.
+Logs are appended to `data/latency_results.csv` and `data/power_logs.csv`. Raw high-frequency power logs are saved in `data/` as `raw_cpu_power_*.csv` and `raw_gpu_power_*.csv`.
 
 ### 6. Summarize results
 ```bash
-uv run python src/analysis/p1_summary.py \
-    --input data/measurements/p1 \
-    --output doc/figures \
-    --summary-csv doc/p1_metrics_summary.csv
+uv run python src/analysis/generate_report.py
 ```
-This command reproduces the Milestone P1 table and updates the Plotly visualization in `doc/figures/p1_energy_per_token.html`.
+This command parses the latest logs and generates a summary table in `doc/latest_report.md`.
+You can also run the Jupyter notebook `src/analysis/p1_energy_latency.ipynb` for interactive visualization.
 
 ### 7. Prepare submission artifacts
-- Export `doc/Milestone P1 — Initial Experiment and Evaluation Setup.md` to PDF via Pandoc or VS Code.
-- Build slides from `doc/p1_slides_outline.md` and export to PDF.
-- Complete `doc/milestone_p1_checklist.md` and tag the repository (`git tag milestone-p1`).
+- Export `doc/Milestone P1 — Initial Experiment and Evaluation Setup.md` to PDF.
+- Build slides from `doc/p1_slides_outline.md`.
 
 ## Directory Layout
 ```
 |- config/
 |  |- model_hashes.json
 |  |- p1_runs.yaml
-|  \- prompt_config.json
 |- data/
-|  |- README.md
 |  |- latency_results.csv
 |  |- power_logs.csv
+|  |- models/
 |  |- prompts/
-|  |  |- ar.jsonl
-|  |  |- ng.jsonl
-|  |  |- sd.jsonl
-|  |  \- manual_prompts.json
-|  \- measurements/
-|     \- p1/
-|        |- cpu/
-|        |  |- analytical_reasoning/run_metrics.csv
-|        |  |- narrative_generation/run_metrics.csv
-|        |  \- short_dialogue/run_metrics.csv
-|        \- gpu/
-|           |- analytical_reasoning/run_metrics.csv
-|           |- narrative_generation/run_metrics.csv
-|           \- short_dialogue/run_metrics.csv
 |- doc/
 |  |- Milestone P0 — Project Proposal and Motivation.md
 |  |- Milestone P1 — Initial Experiment and Evaluation Setup.md
-|  |- p1_experiment_log.md
-|  |- p1_metrics_summary.csv
-|  \- figures/p1_energy_per_token.html
+|  |- latest_report.md
 |- src/
-|  |- analysis/p1_energy_latency.ipynb
-|  |- analysis/p1_summary.py
-|  |- runtime/Makefile
-|  |- run_cpu.py
-|  |- run_gpu.py
+|  |- analysis/
+|  |  |- generate_report.py
+|  |  |- p1_energy_latency.ipynb
 |  |- run_session.py
 |  |- telemetry.py
-|  |- utils/sync_logs.py
-|  \- workload.py
+|  |- workload.py
 |- pyproject.toml
 |- uv.lock
 ```

@@ -1,0 +1,11 @@
+numpy>=1.26
+pandas>=2.2
+plotly>=5.22
+polars>=0.20
+pynvml>=11.5
+pyyaml>=6.0
+rich>=13.7
+
+[analysis]
+matplotlib>=3.8
+seaborn>=0.13
