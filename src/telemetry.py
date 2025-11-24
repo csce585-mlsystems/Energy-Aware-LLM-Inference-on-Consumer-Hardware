@@ -23,6 +23,7 @@ class TelemetryLogger:
     _latency_headers: Iterable[str] = field(
         default_factory=lambda: (
             "timestamp",
+            "run_id",
             "backend",
             "prompt_id",
             "prompt_template",
@@ -48,10 +49,12 @@ class TelemetryLogger:
         tokens_generated: Optional[int] = None,
         energy_joules: Optional[float] = None,
         notes: str = "",
+        run_id: str = "unknown",
     ) -> None:
         """Record a single latency measurement."""
         record = {
             "timestamp": dt.datetime.utcnow().isoformat(timespec="milliseconds"),
+            "run_id": run_id,
             "backend": backend,
             "prompt_id": prompt_id,
             "prompt_template": prompt_template,

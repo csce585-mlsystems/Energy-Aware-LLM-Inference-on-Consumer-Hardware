@@ -121,40 +121,78 @@ def generate_report():
         
         gpu_trace_df = pd.read_csv(latest_gpu_log)
         gpu_trace_df["timestamp"] = pd.to_datetime(gpu_trace_df["timestamp"])
-        
-        # Calculate relative time (seconds from start)
-        start_time = gpu_trace_df["timestamp"].min()
-        gpu_trace_df["time_rel_s"] = (gpu_trace_df["timestamp"] - start_time).dt.total_seconds()
-        
-        plt.figure(figsize=(12, 5))
-        sns.lineplot(data=gpu_trace_df, x="time_rel_s", y="power_w", color="green", linewidth=1)
-        plt.title(f"GPU Power Trace (Run: {Path(latest_gpu_log).name})")
-        plt.xlabel("Time (s)")
-        plt.ylabel("Power (W)")
-        plt.grid(True, linestyle="--", alpha=0.5)
-        plt.tight_layout()
-        plt.savefig(figures_dir / "gpu_power_trace.png")
-        print(f"Saved figure: {figures_dir / 'gpu_power_trace.png'}")
-    else:
-        print("No raw GPU power logs found.")
 
-    # Save to file
-    report_path = Path("doc/latest_report.md")
-    with open(report_path, "w") as f:
-        f.write("# Performance Report (Nov 2025)\n\n")
-        f.write("## Summary Table\n")
-        f.write("| Backend | Suite | Latency (ms) | Energy (J) | EDP (J*s) |\n")
-        f.write("|---------|-------|--------------|------------|-----------|\n")
-        for _, row in merged.iterrows():
-            f.write(f"| {row['backend']} | {row['prompt_template']} | {row['avg_latency_ms']:.2f} | {row['avg_energy_joules']:.2f} | {row['edp']:.2f} |\n")
-        
-        f.write("\n## Visualizations\n")
-        f.write("![Energy vs Latency](figures/energy_vs_latency.png)\n")
-        f.write("![Metrics Comparison](figures/metrics_comparison.png)\n")
-        if gpu_logs:
-            f.write("![GPU Power Trace](figures/gpu_power_trace.png)\n")
+
+    # --- 6. Ablation Study Analysis ---
+    print("\n--- Generating Ablation Plots ---")
     
-    print(f"\nReport saved to {report_path}")
+    # Reload data to ensure we have the latest with run_id
+    try:
+        latency_df = pd.read_csv("data/latency_results.csv")
+        # Ensure run_id exists
+        if "run_id" not in latency_df.columns:
+            print("⚠️ 'run_id' column missing in latency_results.csv. Skipping ablation plots.")
+        else:
+            # Filter for ablation suites
+            ablation_df = latency_df[latency_df["run_id"].str.contains("cpu-t|gpu-l|gpu-b", na=False)].copy()
+            
+            if not ablation_df.empty:
+                # Parse parameters from run_id
+                def extract_param(run_id):
+                    if "cpu-t" in run_id:
+                        return "threads", int(run_id.split("-t")[1])
+                    if "gpu-l" in run_id:
+                        return "layers", int(run_id.split("-l")[1])
+                    if "gpu-b" in run_id:
+                        return "batch_size", int(run_id.split("-b")[1])
+                    return "unknown", 0
+
+                ablation_df[["param_type", "param_value"]] = ablation_df["run_id"].apply(
+                    lambda x: pd.Series(extract_param(x))
+                )
+
+                # Plot 1: CPU Thread Scaling
+                threads_df = ablation_df[ablation_df["param_type"] == "threads"]
+                if not threads_df.empty:
+                    plt.figure(figsize=(8, 5))
+                    sns.lineplot(data=threads_df, x="param_value", y="latency_ms", marker="o")
+                    plt.title("CPU Thread Scaling: Latency vs Threads")
+                    plt.xlabel("Threads")
+                    plt.ylabel("Latency (ms)")
+                    plt.grid(True, linestyle="--", alpha=0.5)
+                    plt.savefig(figures_dir / "ablation_threads.png")
+                    print(f"Saved figure: {figures_dir / 'ablation_threads.png'}")
+
+                # Plot 2: GPU Layer Offloading
+                layers_df = ablation_df[ablation_df["param_type"] == "layers"]
+                if not layers_df.empty:
+                    plt.figure(figsize=(8, 5))
+                    sns.lineplot(data=layers_df, x="param_value", y="latency_ms", marker="o", color="orange")
+                    plt.title("GPU Offloading: Latency vs GPU Layers")
+                    plt.xlabel("GPU Layers Offloaded")
+                    plt.ylabel("Latency (ms)")
+                    plt.grid(True, linestyle="--", alpha=0.5)
+                    plt.savefig(figures_dir / "ablation_layers.png")
+                    print(f"Saved figure: {figures_dir / 'ablation_layers.png'}")
+
+                # Plot 3: Batch Size Scaling
+                batch_df = ablation_df[ablation_df["param_type"] == "batch_size"]
+                if not batch_df.empty:
+                    plt.figure(figsize=(8, 5))
+                    sns.lineplot(data=batch_df, x="param_value", y="latency_ms", marker="o", color="green")
+                    plt.title("Batch Size Scaling: Latency vs Batch Size")
+                    plt.xlabel("Batch Size")
+                    plt.ylabel("Latency (ms)")
+                    plt.grid(True, linestyle="--", alpha=0.5)
+                    plt.savefig(figures_dir / "ablation_batch.png")
+                    print(f"Saved figure: {figures_dir / 'ablation_batch.png'}")
+            else:
+                print("No ablation data found in CSV.")
+
+    except Exception as e:
+        print(f"⚠️ Failed to generate ablation plots: {e}")
+
+    print(f"\nReport saved to {figures_dir / 'report.txt'}") # Assuming report_path is figures_dir / 'report.txt'
 
 if __name__ == "__main__":
     generate_report()

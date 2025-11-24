@@ -162,6 +162,7 @@ def execute_runs(runs: Iterable[RunSpec], dry_run: bool = False) -> None:
             temperature=spec.temperature,
             dry_run=dry_run,
             extra_args=spec.extra_args,
+            run_id=spec.run_id,
         )
 
         print(f"✅ Completed {spec.run_id}")

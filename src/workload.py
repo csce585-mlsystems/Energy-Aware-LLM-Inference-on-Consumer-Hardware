@@ -82,6 +82,7 @@ def run_prompts(
     temperature: float = 0.2,
     dry_run: bool = False,
     extra_args: Optional[Iterable[str]] = None,
+    run_id: str = "unknown",
 ) -> None:
     """Execute prompts sequentially and capture telemetry."""
 
@@ -157,6 +158,7 @@ def run_prompts(
             tokens_generated=tokens_generated,
             energy_joules=None,  # GPU will add energy later
             notes=notes,
+            run_id=run_id,
         )
 
 
