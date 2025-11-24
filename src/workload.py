@@ -42,9 +42,9 @@ def load_manual_prompts(path: Path) -> List[Prompt]:
 
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:  # defensive
+    except FileNotFoundError as exc:
         raise RuntimeError(f"Prompt file not found: {path}") from exc
-    except json.JSONDecodeError as exc:  # defensive
+    except json.JSONDecodeError as exc:
         raise RuntimeError(f"Prompt file contains invalid JSON: {path}") from exc
 
     prompts: List[Prompt] = []
@@ -97,7 +97,6 @@ def run_prompts(
         tokens_generated: Optional[int] = None
         notes = ""
 
-        # --- NEW: record CPU power if running CPU backend ---
         if backend == "cpu" and not dry_run:
             try:
                 logger.record_cpu_power(duration=5, notes=f"prompt={prompt.id}")
@@ -140,7 +139,7 @@ def run_prompts(
                     errors="ignore"
                 )
                 output_text = result.stdout.strip()
-            except subprocess.CalledProcessError as exc:  # defensive
+            except subprocess.CalledProcessError as exc:
                 output_text = exc.stdout or ""
                 notes = f"llama.cpp exited with {exc.returncode}"
 

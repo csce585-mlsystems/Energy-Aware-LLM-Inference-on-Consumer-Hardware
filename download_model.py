@@ -1,7 +1,6 @@
 import urllib.request
 import os
 
-# Corrected URL with Q4_0 capitalized
 url = "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_0.gguf"
 dest = "data/models/TinyLlama-1.1B-Chat-v1.0.Q4_0.gguf"
 
