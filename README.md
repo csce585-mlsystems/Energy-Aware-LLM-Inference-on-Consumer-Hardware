@@ -1,7 +1,7 @@
 # Energy-Aware LLM Inference on Consumer Hardware
 
 **Course:** CSCE 585 — Machine Learning Systems  
-**Status:** Milestone P1 Complete (Initial Experiment & Evaluation Setup)
+**Status:** Milestone P2 Complete (Ablation Studies & Final Report)
 
 ## Group Info
 - Suprawee Pongpeeradech  
@@ -10,10 +10,13 @@
 ## Project Summary
 Large language models enable rich conversational applications but impose heavy energy costs when deployed on commodity desktops. This project benchmarks **TinyLlama-1.1B** inference on an Intel Core i5-13600K CPU and an NVIDIA RTX 3060 GPU. We measure **latency**, **energy (Joules)**, and **Energy-Delay Product (EDP)** to guide hardware and scheduling decisions.
 
-## Key Findings (Milestone P1)
-- **Baseline Established:** We have successfully instrumented a consumer PC to capture synchronized power telemetry from both CPU (Intel Power Gadget) and GPU (NVML).
-- **Initial Comparison:** Preliminary results show a significant efficiency advantage for GPU inference, with lower latency and reduced energy-per-token compared to the CPU baseline.
-- **Pipeline Verified:** The automated runner (`src/run_session.py`) correctly orchestrates experiments, ensuring reproducibility.
+## Key Findings (Milestone P2)
+- **GPU Acceleration:** Offloading layers to the GPU reduces latency by ~5x and energy by ~2x compared to CPU-only inference.
+- **"Race to Sleep":** The GPU's high power draw (Watts) is offset by its extreme speed, resulting in lower total energy consumption (Joules).
+- **Ablation Results:**
+  - **Threads:** CPU performance saturates around 4-8 threads.
+  - **Layers:** Offloading is the single most effective optimization.
+  - **Batch Size:** Larger batches improve throughput but increase individual latency.
 
 ---
 
@@ -49,6 +52,11 @@ We use `src/run_session.py` to orchestrate experiments defined in YAML config fi
 uv run python src/run_session.py --config config/p1_runs.yaml
 ```
 
+#### Phase 2: Ablation Studies (Threads, Layers, Batch Size)
+```powershell
+uv run python src/run_session.py --config config/p2_ablation.yaml
+```
+
 ### 4. Generate Analysis & Report
 This script parses the telemetry logs (`data/latency_results.csv`, `data/power_logs.csv`), generates plots in `doc/figures/`, and creates a summary report.
 
@@ -57,10 +65,13 @@ uv run python src/analysis/generate_report.py
 ```
 
 **Output:**
-- **Report:** `doc/latest_report.md`
+- **Report:** `doc/latest_report.md` (and `doc/Milestone P2 — Final Report.md`)
 - **Figures:**
   - `doc/figures/energy_vs_latency.png`
   - `doc/figures/metrics_comparison.png`
+  - `doc/figures/ablation_threads.png`
+  - `doc/figures/ablation_layers.png`
+  - `doc/figures/ablation_batch.png`
   - `doc/figures/gpu_power_trace.png`
 
 ---
@@ -69,6 +80,7 @@ uv run python src/analysis/generate_report.py
 ```
 ├── config/
 │   ├── p1_runs.yaml        # Baseline experiment config
+│   ├── p2_ablation.yaml    # Ablation study config
 ├── data/
 │   ├── models/             # GGUF models (ignored by git)
 │   ├── prompts/            # JSONL prompt files
@@ -77,6 +89,7 @@ uv run python src/analysis/generate_report.py
 ├── doc/
 │   ├── figures/            # Generated plots
 │   ├── Milestone P1...md   # Initial Report
+│   ├── Milestone P2...md   # Final Report
 ├── src/
 │   ├── analysis/           # Analysis scripts
 │   ├── run_session.py      # Experiment runner

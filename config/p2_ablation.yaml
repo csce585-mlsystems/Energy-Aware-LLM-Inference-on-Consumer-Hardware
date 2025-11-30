@@ -1,0 +1,65 @@
+# Experiment manifest for Milestone P2 Ablation Studies.
+defaults:
+  llama_binary: ../llama.cpp/build/bin/llama-cli.exe
+  model: data/models/TinyLlama-1.1B-Chat-v1.0.Q4_0.gguf
+  prompt_config: config/prompt_config.json
+  temperature: 0.1
+  n_predict: 128
+  prompt_source: manual
+  prompt_file: data/prompts/sd.jsonl # Use Short Dialogue for speed
+
+runs:
+  # --- 1. CPU Thread Scaling (Ablation) ---
+  - id: cpu-t1
+    suite: ablation_threads
+    backend: cpu
+    extra_args: ["--threads", "1"]
+  
+  - id: cpu-t4
+    suite: ablation_threads
+    backend: cpu
+    extra_args: ["--threads", "4"]
+
+  - id: cpu-t8
+    suite: ablation_threads
+    backend: cpu
+    extra_args: ["--threads", "8"]
+
+  # --- 2. GPU Layer Offloading (Ablation) ---
+  # TinyLlama has 22 layers.
+  - id: gpu-l0
+    suite: ablation_layers
+    backend: cpu # Effectively CPU if 0 layers, but we use gpu backend to test offloading logic if we force it? 
+                 # Actually, let's use backend: gpu but set gpu_layers: 0
+    backend: gpu
+    gpu_layers: 0
+  
+  - id: gpu-l11
+    suite: ablation_layers
+    backend: gpu
+    gpu_layers: 11
+
+  - id: gpu-l22
+    suite: ablation_layers
+    backend: gpu
+    gpu_layers: 22 # Full offload
+
+  # --- 3. Batch Size Scaling (Prompt Processing) ---
+  # Varying -b parameter
+  - id: gpu-b128
+    suite: ablation_batch
+    backend: gpu
+    batch_size: 128
+    gpu_layers: 22
+
+  - id: gpu-b512
+    suite: ablation_batch
+    backend: gpu
+    batch_size: 512
+    gpu_layers: 22
+
+  - id: gpu-b1024
+    suite: ablation_batch
+    backend: gpu
+    batch_size: 1024
+    gpu_layers: 22

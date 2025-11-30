@@ -1,4 +1,6 @@
 analysis
+demo_server
+interface
 plot_cpu_power
 prompt_generator
 run_cpu
