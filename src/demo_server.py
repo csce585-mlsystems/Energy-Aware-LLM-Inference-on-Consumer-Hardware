@@ -4,9 +4,13 @@ import time
 import random
 import sys
 import logging
+import glob
+import csv
+import os
+import datetime as dt
 from flask import Flask, request, jsonify
 
-# Configure logging to show "Process Labels" clearly in the terminal
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(message)s',
@@ -16,188 +20,177 @@ logger = logging.getLogger("EnergyDemo")
 
 app = Flask(__name__)
 
-# Progress tracking (shared state)
-current_progress = {
-    "status": "idle",      # idle, processing, complete
-    "step": 0,             # 0-4
-    "step_name": "Ready",
-    "progress": 0.0        # 0.0 - 1.0
-}
+def get_latest_trace_file(backend):
+    """Finds the most recent CSV file for the given backend."""
+    search_pattern = f"data/raw_{backend}_power_*.csv"
+    files = glob.glob(search_pattern)
+    if not files: return None
+    files.sort(key=os.path.getmtime, reverse=True)
+    return files[0]
 
-import glob
-import csv
-
-def get_real_trace(backend="gpu"):
-    """Loads a random real power trace from the data directory."""
+def parse_trace_csv(filepath):
+    """Reads the CSV and returns the power trace and calculated energy."""
+    trace = []
     try:
-        # Find all CSVs for the requested backend
-        file_pattern = f"data/raw_{backend}_power_*.csv"
-        files = glob.glob(file_pattern)
-        
-        if not files:
-            logger.warning(f"No real data found for {backend}, falling back to mock.")
-            return generate_mock_trace()
-            
-        # Pick a random file
-        selected_file = random.choice(files)
-        logger.info(f"Loading real trace from: {selected_file}")
-        
-        trace = []
-        with open(selected_file, 'r') as f:
+        with open(filepath, 'r') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                # Parse power value (assuming column name 'Power(W)' or similar from Intel Power Gadget/NVML)
-                # Adjust based on actual CSV format. 
-                # NVML usually has ' power_draw_W' or similar.
-                # Let's try to find a column that looks like power.
-                for key, val in row.items():
+                val = 0.0
+                for key, v in row.items():
                     if "power" in key.lower() or "watt" in key.lower():
-                        try:
-                            val = float(val)
-                            if val > 0: # Filter out zeros if needed
-                                trace.append(val)
-                            break
-                        except:
-                            pass
-                            
-        if not trace:
-            return generate_mock_trace()
-            
-        # Downsample if too large (GameMaker doesn't need 1000s of points)
-        if len(trace) > 100:
-            step = len(trace) // 100
-            trace = trace[::step]
-            
-        return trace
+                        try: val = float(v); break
+                        except: pass
+                trace.append(val)
         
+        if len(trace) > 200: trace = trace[::len(trace)//200]
+        energy_joules = sum(trace) * 0.1 
+        return trace, energy_joules
     except Exception as e:
-        logger.error(f"Error loading real trace: {e}")
-        return generate_mock_trace()
+        logger.error(f"Error parsing {filepath}: {e}")
+        return [], 0.0
 
-def generate_mock_trace(duration_sec=2.0):
-    """Generates a realistic-looking power trace for the demo (Fallback)."""
-    points = int(duration_sec * 10) # 10 samples per second
-    trace = []
-    
-    # Idle baseline
-    trace.append(15.0)
-    trace.append(16.2)
-    
-    # Ramp up
-    trace.append(80.5)
-    trace.append(150.0)
-    
-    # Sustained load (noisy)
-    for _ in range(points - 4):
-        trace.append(random.uniform(140.0, 160.0))
-        
-    # Ramp down
-    trace.append(40.0)
-    trace.append(16.0)
-    
-    return trace
+def load_csv_data(filepath):
+    """Generic CSV loader."""
+    data = []
+    if not os.path.exists(filepath): return []
+    try:
+        with open(filepath, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader: data.append(row)
+    except: pass
+    return data
 
-@app.route('/generate', methods=['POST'])
-def generate():
-    global current_progress
+def parse_iso_time(iso_str):
+    """Parses ISO timestamp to datetime object."""
+    try:
+        return dt.datetime.fromisoformat(iso_str)
+    except:
+        return dt.datetime.now() # Fallback
+
+@app.route('/history', methods=['GET'])
+def history():
+    """Returns merged history from latency_results.csv and power_logs.csv."""
+    logger.info("Fetching full history...")
     
-    data = request.json or {}
-    prompt = data.get("prompt", "Hello, world!")
-    backend = data.get("backend", "gpu")
+    latencies = load_csv_data("data/latency_results.csv")
+    powers = load_csv_data("data/power_logs.csv")
     
-    # STEP 1: Request Received
-    current_progress = {"status": "processing", "step": 1, "step_name": "Request Received", "progress": 0.0}
-    print("\n" + "="*40)
-    logger.info(f"[STEP 1] Request Received: '{prompt}'")
-    logger.info(f"[STEP 1] Selected Backend: {backend.upper()}")
-    print("="*40 + "\n")
-    time.sleep(0.5)
+    merged_runs = []
+    used_power_indices = set()  # Track which power logs we've matched
     
-    # STEP 2: Loading
-    current_progress = {"status": "processing", "step": 2, "step_name": "Loading Model & Warming Up Sensors...", "progress": 0.25}
-    logger.info("[STEP 2] Loading Model & Warming Up Sensors...")
-    time.sleep(0.5)
+    # Phase 1: Process latency entries and try to match with power logs
+    for lat in latencies:
+        try:
+            l_time = parse_iso_time(lat.get("timestamp", ""))
+            l_backend = lat.get("backend", "unknown")
+            l_val = float(lat.get("latency_ms", 0))
+            
+            # Find matching power log
+            matched_energy = 0.0
+            best_delta = 10.0
+            best_power_idx = -1
+            
+            for idx, pow_log in enumerate(powers):
+                if pow_log.get("backend") != l_backend: continue
+                if idx in used_power_indices: continue  # Skip already matched
+                
+                p_time = parse_iso_time(pow_log.get("timestamp", ""))
+                delta = abs((l_time - p_time).total_seconds())
+                
+                if delta < best_delta:
+                    best_delta = delta
+                    best_power_idx = idx
+                    try: matched_energy = float(pow_log.get("energy_joules", 0))
+                    except: matched_energy = 0.0
+            
+            # Mark this power log as used if we found a match
+            if best_power_idx != -1:
+                used_power_indices.add(best_power_idx)
+            
+            # If no match in power_logs, check if latency CSV has energy
+            if matched_energy == 0.0:
+                try: matched_energy = float(lat.get("energy_joules", 0))
+                except: pass
+                
+            merged_runs.append({
+                "run_id": lat.get("run_id", "unknown"),
+                "backend": l_backend,
+                "latency_ms": l_val,
+                "energy_joules": matched_energy,
+                "timestamp": lat.get("timestamp"),
+                "power_trace": []
+            })
+            
+        except Exception as e:
+            logger.warning(f"Skipping malformed latency row: {e}")
+            continue
     
-    # STEP 3: Inference
-    current_progress = {"status": "processing", "step": 3, "step_name": "Running Inference...", "progress": 0.5}
-    logger.info("[STEP 3] Running Inference...")
-    start_time = time.time()
+    # Phase 2: Add unmatched power log entries (ones without corresponding latency data)
+    for idx, pow_log in enumerate(powers):
+        if idx in used_power_indices:
+            continue  # Already matched with a latency entry
+            
+        try:
+            p_time = parse_iso_time(pow_log.get("timestamp", ""))
+            p_backend = pow_log.get("backend", "unknown")
+            
+            try: p_energy = float(pow_log.get("energy_joules", 0))
+            except: p_energy = 0.0
+            
+            # Estimate latency from energy if not available (rough heuristic)
+            # Or leave as 0 to indicate it's missing
+            estimated_latency = 0.0
+            
+            merged_runs.append({
+                "run_id": f"power_only_{idx}",
+                "backend": p_backend,
+                "latency_ms": estimated_latency,
+                "energy_joules": p_energy,
+                "timestamp": pow_log.get("timestamp"),
+                "power_trace": []
+            })
+            
+        except Exception as e:
+            logger.warning(f"Skipping malformed power row: {e}")
+            continue
+            
+    return jsonify({"runs": merged_runs})
+
+@app.route('/latest_trace', methods=['GET'])
+def latest_trace():
+    backend = request.args.get("backend", "gpu")
+    logger.info(f"Received request for latest {backend} trace.")
     
-    # --- SIMULATED REAL-TIME INFERENCE ---
-    # Load the full trace first
-    full_trace = get_real_trace(backend)
+    filepath = get_latest_trace_file(backend)
     
-    # Calculate duration based on trace length (assuming 10Hz sampling = 0.1s per point)
-    # Adjust this if your CSVs have different sampling rates.
-    # NVML/PowerGadget usually ~10-20Hz.
-    point_duration = 0.1 
-    
-    current_progress["status"] = "processing"
-    current_progress["step"] = 3
-    current_progress["step_name"] = "Running Inference..."
-    
-    live_trace = []
-    
-    # Stream the data!
-    for i, power_val in enumerate(full_trace):
-        live_trace.append(power_val)
+    if not filepath:
+        return jsonify({"error": "No data found", "message": "Run experiments first."}), 404
         
-        # Update global progress
-        # We use a special key "partial_trace" for GameMaker to poll
-        current_progress["progress"] = 0.3 + (0.6 * (i / len(full_trace))) # 30% to 90%
-        current_progress["partial_trace"] = live_trace 
-        
-        # Simulate time passing
-        time.sleep(point_duration)
-        
-    # ------------------------------------
-    
-    end_time = time.time()
-    latency_ms = (end_time - start_time) * 1000
-    
-    # STEP 4: Complete
-    current_progress = {"status": "processing", "step": 4, "step_name": "Inference Complete", "progress": 1.0, "partial_trace": live_trace}
-    logger.info(f"[STEP 4] Inference Complete. Latency: {latency_ms:.2f} ms")
-    
-    energy_joules = sum(full_trace) * (point_duration) # Simple integral
+    logger.info(f"Serving file: {filepath}")
+    trace, energy = parse_trace_csv(filepath)
+    latency_ms = len(trace) * 100 # Approx
     
     response_data = {
-        "runs": [
-            {
-                "run_id": f"run_{int(time.time())}",
-                "backend": backend,
-                "latency_ms": round(latency_ms, 2),
-                "energy_joules": round(energy_joules, 2),
-                "power_trace": full_trace,
-                "text": f"Generated response for '{prompt}' using {backend}..."
-            }
-        ]
+        "runs": [{
+            "run_id": os.path.basename(filepath),
+            "backend": backend,
+            "latency_ms": latency_ms,
+            "energy_joules": round(energy, 2),
+            "power_trace": trace,
+            "text": f"Visualizing {os.path.basename(filepath)}"
+        }]
     }
     
-    logger.info(f"[DATA] Sending {len(full_trace)} power samples to GameMaker.")
-    print("\n" + "="*40)
-    
-    # Reset to idle after a short delay so GameMaker can see the 100% state
-    time.sleep(2.0)
-    current_progress = {"status": "idle", "step": 0, "step_name": "Ready", "progress": 0.0}
-    
+    time.sleep(0.5) # UI Delay
     return jsonify(response_data)
 
 @app.route('/status', methods=['GET'])
 def status():
-    return jsonify(current_progress)
+    return jsonify({"status": "idle", "step": 0, "step_name": "Ready", "progress": 0.0})
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="GameMaker Energy Demo Server")
-    parser.add_argument("--mock", action="store_true", help="Run in mock mode (no real GPU needed)")
-    parser.add_argument("--port", type=int, default=5000, help="Port to run server on")
-    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=int, default=5000)
     args = parser.parse_args()
-    
-    print(f"\nStarting Energy Demo Server on port {args.port}...")
-    print("Use Ctrl+C to stop.\n")
-    
-    if args.mock:
-        logger.warning("RUNNING IN MOCK MODE - No real hardware will be accessed.")
-        
+    print(f"Starting Data Server on port {args.port}...")
     app.run(host='0.0.0.0', port=args.port)

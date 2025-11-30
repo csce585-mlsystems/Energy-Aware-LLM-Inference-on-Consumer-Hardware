@@ -7,3 +7,4 @@ global.last_poll_time = 0;
 
 // 🔹 Load initial data from JSON file
 load_energy_data();
+load_history_data();
