@@ -1,5 +1,6 @@
 README.md
 pyproject.toml
+src/demo_server.py
 src/plot_cpu_power.py
 src/prompt_generator.py
 src/run_cpu.py
@@ -14,4 +15,5 @@ src/energy_aware_llm.egg-info/SOURCES.txt
 src/energy_aware_llm.egg-info/dependency_links.txt
 src/energy_aware_llm.egg-info/requires.txt
 src/energy_aware_llm.egg-info/top_level.txt
+src/interface/bridge.py
 src/utils/sync_logs.py

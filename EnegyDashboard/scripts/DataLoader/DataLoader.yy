@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"DataLoader",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"DataLoader",
+  "parent":{
+    "name":"Scripts",
+    "path":"folders/Scripts.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

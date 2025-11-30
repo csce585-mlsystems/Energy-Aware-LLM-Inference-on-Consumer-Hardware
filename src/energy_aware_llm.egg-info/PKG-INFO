@@ -4,6 +4,7 @@ Version: 0.1.0
 Summary: Energy-aware TinyLlama inference benchmarking on consumer hardware
 Author-email: Suprawee Pongpeeradech <suprawee@email.sc.edu>
 Requires-Python: >=3.11
+Requires-Dist: flask>=3.1.2
 Requires-Dist: matplotlib>=3.10.7
 Requires-Dist: numpy>=1.26
 Requires-Dist: pandas>=2.2
