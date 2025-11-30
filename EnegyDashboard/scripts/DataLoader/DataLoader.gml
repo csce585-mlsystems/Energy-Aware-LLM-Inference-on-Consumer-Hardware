@@ -109,8 +109,8 @@ function handle_http_response() {
                     global.server_step_name = _data.step_name;
                 }
                 
-                // Update Real-time Graph
-                if (variable_struct_exists(_data, "partial_trace")) {
+                // Update Real-time Graph (ONLY if still processing)
+                if (variable_struct_exists(_data, "partial_trace") && global.http_request_id != -1) {
                     var _partial = _data.partial_trace;
                     if (array_length(_partial) > 0) {
                         // Create a temporary "run" object to display

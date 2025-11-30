@@ -14,7 +14,7 @@ function draw_inference_progress() {
     // If not running, ensure it says Ready
     if (global.http_request_id == -1) {
         _progress = 0.0;
-        _step_text = "Ready - Press Space to Run";
+        _step_text = "Ready - Press a button to run";
     }
     
     // Layout - CENTERED

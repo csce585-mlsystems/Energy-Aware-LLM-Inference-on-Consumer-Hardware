@@ -8,7 +8,7 @@ draw_text(10, 30, "Has Data: " + string(!is_undefined(global.energy_data)));
 if (!is_undefined(global.energy_data)) {
     draw_energy_graph(50, 100, 800, 400);
 } else {
-    draw_text(50, 100, "No data yet. Press Space.");
+    draw_text(50, 100, "No data yet.");
 }
 
 // Show loading animation while waiting
