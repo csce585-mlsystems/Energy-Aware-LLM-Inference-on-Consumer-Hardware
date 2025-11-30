@@ -18,3 +18,5 @@ var _random_prompt = _prompts[irandom(array_length(_prompts) - 1)];
 // ALWAYS run CPU
 request_inference(_random_prompt, "cpu");
 // If you want to force CPU, use: request_inference("Your prompt here", "cpu");
+
+output("Running CPU")

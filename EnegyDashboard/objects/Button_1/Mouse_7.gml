@@ -17,3 +17,5 @@ var _random_prompt = _prompts[irandom(array_length(_prompts) - 1)];
 
 // ALWAYS run GPU
 request_inference(_random_prompt, "gpu");
+
+output("Running GPU")
