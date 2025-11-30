@@ -27,11 +27,6 @@ function draw_energy_graph(_x, _y, _width, _height) {
     _x = (_screen_width - _width) / 2;
     _y = (_screen_height - _height) / 2 - 50; // Shift up slightly to make room for progress bar
     
-    // Draw Title
-    draw_set_halign(fa_center);
-    draw_set_color(c_white);
-    draw_text_transformed(_screen_width/2, 30, "Energy-Aware Inference Dashboard", 2, 2, 0);
-    
     // Background
     draw_set_color(make_color_rgb(20, 20, 25)); // Dark blue-gray
     draw_set_alpha(0.9);
