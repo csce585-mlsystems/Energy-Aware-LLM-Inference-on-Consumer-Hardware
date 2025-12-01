@@ -4,6 +4,9 @@ import { PowerGraph } from './PowerGraph';
 import { HistoryTable } from './HistoryTable';
 import { EnergyLatencyScatter } from './EnergyLatencyScatter';
 import { AblationChart } from './AblationChart';
+import { ComparisonView } from './ComparisonView';
+import { InfoTooltip } from './InfoTooltip';
+import { LoadingSpinner, SkeletonCard } from './LoadingStates';
 import { Zap, BarChart3, History, Activity } from 'lucide-react';
 
 type TabType = 'realtime' | 'analysis' | 'ablation' | 'history';
@@ -13,11 +16,14 @@ export function Dashboard() {
     const [latestTrace, setLatestTrace] = useState<any>(null);
     const [backend, setBackend] = useState('gpu');
     const [activeTab, setActiveTab] = useState<TabType>('realtime');
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedRuns, setSelectedRuns] = useState<string[]>([]);
+    const [comparison, setComparison] = useState<any>(null);
 
     // Poll for data
     useEffect(() => {
-        // Clear trace when switching backends to prevent flickering
         setLatestTrace(null);
+        setIsLoading(true);
 
         const fetchData = async () => {
             try {
@@ -28,15 +34,31 @@ export function Dashboard() {
                 if (t.runs && t.runs.length > 0) {
                     setLatestTrace(t.runs[0]);
                 }
+                setIsLoading(false);
             } catch (e) {
                 console.error("Failed to fetch data", e);
+                setIsLoading(false);
             }
         };
 
         fetchData();
-        const interval = setInterval(fetchData, 1000); // 1s polling
+        const interval = setInterval(fetchData, 1000);
         return () => clearInterval(interval);
     }, [backend]);
+
+    const handleToggleSelection = (runId: string) => {
+        setSelectedRuns(prev =>
+            prev.includes(runId) ? prev.filter(id => id !== runId) : [...prev, runId]
+        );
+    };
+
+    const handleCompare = () => {
+        if (selectedRuns.length === 2) {
+            const run1 = history.find((r: any) => r.run_id === selectedRuns[0]);
+            const run2 = history.find((r: any) => r.run_id === selectedRuns[1]);
+            setComparison({ run1, run2 });
+        }
+    };
 
     const tabs = [
         { id: 'realtime' as TabType, label: 'Real-time', icon: Activity },
@@ -95,7 +117,9 @@ export function Dashboard() {
             {activeTab === 'realtime' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
                     <div className="lg:col-span-2 h-full">
-                        {latestTrace ? (
+                        {isLoading ? (
+                            <LoadingSpinner />
+                        ) : latestTrace ? (
                             <PowerGraph key={`${backend}-${latestTrace.run_id}`} data={latestTrace.power_trace} backend={backend} />
                         ) : (
                             <div className="h-full bg-card border rounded-lg flex items-center justify-center text-muted-foreground">
@@ -105,18 +129,29 @@ export function Dashboard() {
                     </div>
                     <div className="bg-card border rounded-lg p-6 flex flex-col justify-center">
                         <h3 className="text-xl font-bold mb-4">Latest Run Stats</h3>
-                        {latestTrace ? (
+                        {isLoading ? (
+                            <SkeletonCard />
+                        ) : latestTrace ? (
                             <div className="space-y-4">
                                 <div className="flex justify-between border-b border-border pb-2">
-                                    <span className="text-muted-foreground">Latency</span>
+                                    <span className="text-muted-foreground flex items-center">
+                                        Latency
+                                        <InfoTooltip text="Response generation time" />
+                                    </span>
                                     <span className="font-mono text-xl">{Math.round(latestTrace.latency_ms)} ms</span>
                                 </div>
                                 <div className="flex justify-between border-b border-border pb-2">
-                                    <span className="text-muted-foreground">Energy</span>
+                                    <span className="text-muted-foreground flex items-center">
+                                        Energy
+                                        <InfoTooltip text="Power consumed" />
+                                    </span>
                                     <span className="font-mono text-xl text-yellow-400">{Math.round(latestTrace.energy_joules)} J</span>
                                 </div>
                                 <div className="flex justify-between pt-2">
-                                    <span className="text-muted-foreground">Efficiency (EDP)</span>
+                                    <span className="text-muted-foreground flex items-center">
+                                        Efficiency (EDP)
+                                        <InfoTooltip text="Lower = Better overall" />
+                                    </span>
                                     <span className="font-mono text-2xl text-blue-400">{(latestTrace.latency_ms * latestTrace.energy_joules / 1000).toFixed(1)} k</span>
                                 </div>
                             </div>
@@ -144,7 +179,33 @@ export function Dashboard() {
             )}
 
             {activeTab === 'history' && (
-                <HistoryTable runs={history} />
+                <div className="space-y-4">
+                    {selectedRuns.length === 2 && (
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleCompare}
+                                className="px-4 py-2 bg-primary text-primary-foreground rounded font-semibold hover:bg-primary/90 transition-colors"
+                            >
+                                Compare Selected Runs
+                            </button>
+                        </div>
+                    )}
+                    <HistoryTable
+                        runs={history}
+                        selectedRuns={selectedRuns}
+                        onToggleSelection={handleToggleSelection}
+                    />
+                </div>
+            )}
+
+            {comparison && (
+                <ComparisonView
+                    comparison={comparison}
+                    onClose={() => {
+                        setComparison(null);
+                        setSelectedRuns([]);
+                    }}
+                />
             )}
         </div>
     );
