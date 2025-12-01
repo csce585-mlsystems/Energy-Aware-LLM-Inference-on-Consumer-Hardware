@@ -70,13 +70,13 @@ Note on EDP: The Energy-Delay Product (EDP = Energy x Latency) is an efficiency 
 
 Key Finding: The GPU’s average latency looks higher at first, but that’s mostly because the results include the partial offloading setups (0 and 11 layers). When the model is run with full GPU offloading (22 layers), the latency drops significantly well below the CPU baseline. This trend is clear in the ablation results shown below.
 
-<img width="993" height="593" alt="Image" src="https://github.com/user-attachments/assets/17dc8261-7bc1-45df-a114-f481c111c41c" />
+<img width="1191" height="745" alt="image" src="https://github.com/user-attachments/assets/c17216cc-0c2d-4778-9a61-1eed480f8c6f" />
 
 _Figure 1: Energy vs. Latency scatter plot for all 27 runs. The three clear clusters represent: fully-offloaded GPU (bottom-left, fastest and most efficient), CPU-only (top-right, slowest and least efficient), and partially-offloaded GPU (middle area, with in-between performance). This shows how much the choice of configuration can shift where you land in the overall energy–latency trade-off space._
 
 Interpretation: The plot shows three clear performance groups. Full GPU offloading (22 layers) lands in the low latency range of about 6 to 8 seconds and uses around 160 J, putting it on the Pareto frontier. CPU-only and partial GPU setups use two to three times more energy, which means they are not very efficient. The spread in GPU results also shows how important it is to choose the right number of layers to offload.
 
-<img width="1267" height="494" alt="Image" src="https://github.com/user-attachments/assets/4f08df7c-e66b-41a9-9fbc-9316f1195743" />
+<img width="1681" height="647" alt="image" src="https://github.com/user-attachments/assets/c67ce962-548c-43a3-82de-e1f2c04553e8" />
 
 _Figure 2: Average latency and energy for both the CPU and GPU setups._
 
@@ -88,7 +88,7 @@ The ablation tests give a clearer picture of which settings actually help perfor
 
 Going from 1 to 4 to 8 CPU threads improves speed, but the gains level off pretty quickly. The 8-thread setup gives the fastest CPU time at about 7152 ms on average, but memory bandwidth limits keep it from scaling any further.
 
-<img width="786" height="481" alt="Image" src="https://github.com/user-attachments/assets/8f41e40d-7180-4efd-b184-e3aff65462db" />
+<img width="1017" height="622" alt="image" src="https://github.com/user-attachments/assets/cc8936fe-6759-4bfa-ac0f-69385eb697b2" />
 
 _Figure 3: CPU thread scaling results. Latency drops sharply when going from 1 to 4 threads (about 40 percent faster), but there is less than 10 percent improvement from 4 to 8 threads, suggesting the system is limited by memory bandwidth, not compute._
 
@@ -103,7 +103,7 @@ Offloading layers to the GPU turned out to be the single most effective optimiza
 
 - `22 layers (full GPU offload):` This is the fastest setup, around 6,000 - 8,000 ms.
 
-<img width="771" height="473" alt="Image" src="https://github.com/user-attachments/assets/5e4b415a-6e70-45d8-8f34-cb521afddd30" />
+<img width="971" height="631" alt="image" src="https://github.com/user-attachments/assets/cc7f063b-ea51-4b15-828e-e3a4570e5a4e" />
 
 _Figure 4: GPU layer offloading ablation study. Latency drops almost linearly as more transformer layers are offloaded to the GPU. Going from 0 to 22 layers cuts latency by about 2 to 3 times and also reduces energy use, making this the most impactful optimization in our experiments._
 
@@ -113,14 +113,14 @@ Interpretation: The almost linear drop in latency as more layers are offloaded s
 
 I tried batch sizes of 128, 512, and 1024 using full GPU offloading. The results show that increasing batch size does not really help for single-prompt inference. Latency only improves a little, since the workload is mostly limited by memory, not by how much compute the GPU has.
 
-<img width="760" height="467" alt="Image" src="https://github.com/user-attachments/assets/4764bacb-8d41-47ce-9a0b-35f7a66f1e3f" />
+<img width="1055" height="688" alt="image" src="https://github.com/user-attachments/assets/ab755714-31c3-4394-9908-eca91275ccdf" />
 
 _Figure 5: Batch size scaling for GPU inference with full layer offloading. The almost flat line across batch sizes 128, 512, and 1024 shows that for single-prompt workloads, batch size does not really affect performance._
 
 ### 3.3 Power Characteristics
 From the real-time power measurements, we can see how power usage changes over the course of GPU inference. During active generation, the GPU draws about 160–180 W, and then clearly drops back down to low, idle levels between prompts.
 
-<img width="1194" height="493" alt="Image" src="https://github.com/user-attachments/assets/343de1c7-ad01-4373-befc-c54685e47f6d" />
+<img width="1718" height="712" alt="image" src="https://github.com/user-attachments/assets/35c354d5-d0c2-4dab-b4d6-d1020301659b" />
 
 _Figure 6: Real-time power usage of the NVIDIA RTX 3060 during a typical inference run. Power jumps to around 160–180 W during token generation and drops to about 20–40 W during prompt handling and idle time. The total energy used is the area under this curve._
 

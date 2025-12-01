@@ -28,35 +28,18 @@ I extend the "Race-to-Sleep" energy management strategy [3] to the domain of LLM
 - Analyzing the Energy-Delay Product (EDP) to find the "sweet spot" between speed and power.
 
 ## References
-### References
-@misc{zhang2024tinyllama,
-  title={TinyLlama: An Open-Source Small Language Model},
-  author={Zhang, Peiyuan and Zeng, Guangtao and Wang, Tianduo and Wei, Lu},
-  year={2024},
-  publisher={GitHub},
-  journal={GitHub repository},
-  howpublished={\url{https://github.com/jzhang38/TinyLlama}}
-}
 
-@misc{gerganov2023llamacpp,
-  title={llama.cpp: Inference of Meta's LLaMA model in pure C/C++},
-  author={Gerganov, Georgi},
-  year={2023},
-  publisher={GitHub},
-  journal={GitHub repository},
-  howpublished={\url{https://github.com/ggerganov/llama.cpp}}
-}
+[1] **TinyLlama**: An Open-Source Small Language Model. Zhang et al., 2024. https://github.com/jzhang38/TinyLlama
 
-@inproceedings{lebeck2000power,
-  title={Power Aware Page Allocation},
-  author={Lebeck, Alvin R and Fan, Xiaobo and Zeng, Heng and Ellis, Carla},
-  booktitle={ASPLOS},
-  year={2000}
-}
+[2] **llama.cpp**: Inference of Meta's LLaMA model in pure C/C++. Gerganov, G., 2023. https://github.com/ggerganov/llama.cpp
 
----
+[3] **Race-to-Sleep Energy Management**: Lebeck, A. R., et al. "Power Aware Page Allocation." ASPLOS 2000.
 
-# < The following is only applicable for the final project submission >
+[4] **NVIDIA Management Library (NVML)**: NVIDIA Corporation. https://developer.nvidia.com/nvidia-management-library-nvml
+
+[5] **Intel Power Gadget**: Intel Corporation. https://www.intel.com/content/www/us/en/developer/articles/tool/power-gadget.html
+
+# The following is only applicable for the final project submission
 
 ## Dependencies
 ### This project requires the following:
@@ -118,7 +101,7 @@ For Python users: Please use [uv](https://docs.astral.sh/uv/) as your package ma
 ## Demo
 - **Interactive Dashboard:**
   I have built a custom GameMaker dashboard to visualize power and latency data collected from inference runs.
-  Video Demo: (haven't uploaded yet)***----
+  Video Demo: [Demonstration Video](https://youtu.be/GkTf_HjWzM4)
 
   *To run the dashboard locally:*
   1. Start the Python server: `uv run python src/demo_server.py`
