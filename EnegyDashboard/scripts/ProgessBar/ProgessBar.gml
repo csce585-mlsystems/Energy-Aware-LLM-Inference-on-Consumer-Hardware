@@ -11,8 +11,8 @@ function draw_inference_progress() {
         _step_text = global.server_step_name;
     }
     
-    // If not running, ensure it says Ready
-    if (global.http_request_id == -1) {
+    // If not running, ensure it says Ready only if we haven't just finished
+    if (global.http_request_id == -1 && (!variable_global_exists("server_progress") || global.server_progress == 0)) {
         _progress = 0.0;
         _step_text = "Ready - Press a button to run";
     }

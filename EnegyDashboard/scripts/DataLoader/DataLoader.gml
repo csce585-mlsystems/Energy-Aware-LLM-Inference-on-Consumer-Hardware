@@ -48,6 +48,9 @@ function request_inference(_prompt, _backend) {
     show_debug_message("🚀 Fetching latest trace from " + _url);
     
     // Store the request ID in a global variable
+    global.server_progress = 0.1;
+    global.server_step_name = "Requesting...";
+    global.user_has_run_inference = true; // <--- Flag user interaction
     global.http_request_id = http_get(_url);
 }
 
@@ -89,8 +92,9 @@ function handle_http_response() {
                     }
                     
                     global.history_loaded = true;
-                    global.server_progress = 0.0;
-                    global.server_step_name = "Ready";
+                    global.history_loaded = true;
+                    global.server_progress = 1.0;
+                    global.server_step_name = "Done!";
                     output("Loaded " + string(array_length(_runs)) + " historical runs.");
                 }
             } catch (_e) {
@@ -130,6 +134,8 @@ function handle_http_response() {
                 // Clicking "Run CPU/GPU" just visualizes the latest file, it doesn't create a new run.
                 
                 global.http_request_id = -1; // Done
+                global.server_progress = 1.0;
+                global.server_step_name = "Done!";
                 
                 output("Loaded " + string_upper(_run.backend) + " trace!");
                 
