@@ -21,7 +21,7 @@ LLM quantization methods (like GPTQ and AWQ) have mostly been explored in the co
 
 ### 2.1 System Setup
 *   **Hardware:** Consumer PC with `Intel Core i5-13400F` and `NVIDIA RTX 3060 GPU`.
-*   **Software:** `llama.cpp`, Python 3.11, `pynvml` (GPU telemetry), Intel Power Gadget (CPU telemetry), GameMaker.
+*   **Software:** `llama.cpp`, Python 3.11, `pynvml` (GPU telemetry), Intel Power Gadget (CPU telemetry), React Web Dashboard.
 *   **Model:** `TinyLlama-1.1B-Chat-v1.0.Q4_0.gguf`.
 
 ### 2.2 Metrics
@@ -202,7 +202,7 @@ This project includes:
 2. Analysis figures: Seven plots showing the main ablation results:
 `doc/figures/*.png`
 
-3. Interactive dashboard: A GameMaker-based tool for live power monitoring during inference (See in `./EnergyDashboard`)
+3. Interactive dashboard: A React-based web tool for live power monitoring during inference (See in `./dashboard-web`)
 
 4. Reproducible pipeline: An automated experiment runner (run_pipeline.ps1) plus analysis scripts
 

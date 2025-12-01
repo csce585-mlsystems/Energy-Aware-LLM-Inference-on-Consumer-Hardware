@@ -1,1 +1,0 @@
-sprite_index = button_press_1;

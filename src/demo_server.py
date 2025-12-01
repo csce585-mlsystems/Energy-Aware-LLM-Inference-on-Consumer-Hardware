@@ -9,6 +9,7 @@ import csv
 import os
 import datetime as dt
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 # Configure logging
 logging.basicConfig(
@@ -19,6 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger("EnergyDemo")
 
 app = Flask(__name__)
+CORS(app)
 
 def get_latest_trace_file(backend):
     """Finds the most recent CSV file for the given backend."""
