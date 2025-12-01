@@ -20,3 +20,8 @@ else if type == "metrics_comparison"{
     global.current_tab = type;
     output("Switched to tab: " + type);
 }
+
+else if type == "ranking"{
+    global.current_tab = type;
+    output("Switched to tab: " + type);
+}

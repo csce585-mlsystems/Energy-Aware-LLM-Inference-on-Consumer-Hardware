@@ -5,10 +5,14 @@ draw_set_color(c_white);
 //draw_text(10, 30, "Has Data: " + string(!is_undefined(global.energy_data)));
 
 // Graph
-if (!is_undefined(global.energy_data)) {
+// Graph / Content Area
+if (global.current_tab == "ranking") {
+    draw_ranking_tab();
+} 
+else {
+    // Dispatch to GraphRenderer for all other tabs (live_trace, energy_vs_latency, etc.)
+    // The renderer handles data checks internally.
     draw_energy_graph(50, 100, 800, 400);
-} else {
-    draw_text(50, 100, "No data yet.");
 }
 
 // Show loading animation while waiting

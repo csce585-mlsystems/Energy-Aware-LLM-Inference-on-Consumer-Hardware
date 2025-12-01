@@ -193,16 +193,10 @@ function draw_live_trace(_x, _y, _width, _height) {
     
     draw_set_color(c_ltgray); draw_text(_px + 15, _py + 210, "ANALYSIS:");
     
-    var _analysis_text = "Press 'Run CPU' or 'Run GPU'\nto generate analysis.";
-    
-    // Only show analysis if user has actively run inference
-    if (variable_global_exists("user_has_run_inference") && global.user_has_run_inference && !is_undefined(_run)) {
-        if (_run.backend == "Processing...") {
-            _analysis_text = "Running Inference...\n\n(Waiting for server)";
-        } else {
-            _analysis_text = get_live_trace_insight(_run);
-        }
-    }
+    var _analysis_text = "OBSERVATION GUIDE:\n\n";
+    _analysis_text += "• Peaks: High power usage (computation intensive).\n";
+    _analysis_text += "• Valleys: Idle or low usage.\n";
+    _analysis_text += "• Ideal: Flat, low power trace with short duration.";
     
     draw_set_color(c_white); draw_text_ext(_px + 15, _py + 235, _analysis_text, 18, _pw - 30);
 }
@@ -495,7 +489,10 @@ function draw_ablation_studies(_x, _y, _width, _height) {
     draw_set_color(c_ltgray); draw_text(_px + 15, _py + 15, "INSIGHTS:");
     draw_set_color(c_white);
     
-    var _msg = get_ablation_insight(global.ablation_mode);
+    var _msg = "OBSERVATION GUIDE:\n\n";
+    _msg += "• Trend: Does latency decrease as you increase the parameter?\n";
+    _msg += "• Diminishing Returns: At what point does adding more resources stop helping?\n";
+    _msg += "• Goal: Find the 'knee' of the curve where performance is optimal.";
     draw_text_ext(_px + 15, _py + 45, _msg, 18, _pw - 30);
 }
 
@@ -632,7 +629,10 @@ function draw_metrics_comparison(_x, _y, _width, _height) {
     draw_set_color(c_ltgray); draw_text(_px + 15, _py + 15, "METRICS SUMMARY:");
     draw_set_color(c_white);
     
-    var _msg2 = get_metrics_insight(_cpu_count, _gpu_count, _speedup, _savings);
+    var _msg2 = "OBSERVATION GUIDE:\n\n";
+    _msg2 += "• Compare the height of the bars.\n";
+    _msg2 += "• Lower is better for Latency.\n";
+    _msg2 += "• Check if the GPU provides a significant speedup over the CPU.";
     
     draw_text_ext(_px + 15, _py + 45, _msg2, 18, _pw - 30);
     

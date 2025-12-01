@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"EDP",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"EDP",
+  "parent":{
+    "name":"Scripts",
+    "path":"folders/Scripts.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
