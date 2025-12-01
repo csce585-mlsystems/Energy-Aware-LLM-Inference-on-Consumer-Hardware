@@ -1,3 +1,49 @@
+function get_run_id_explanation(_run_id) {
+    var _expl = "Unknown configuration.";
+    
+    if (string_pos("cpu-t", _run_id) == 1) {
+        var _threads = string_delete(_run_id, 1, 5);
+        _expl = "CPU Backend with " + _threads + " threads.\nMore threads typically improve performance up to a limit.";
+    }
+    else if (string_pos("gpu-l", _run_id) == 1) {
+        var _layers = string_delete(_run_id, 1, 5);
+        _expl = "GPU Backend with " + _layers + " layers offloaded.\nOffloading more layers to GPU reduces CPU load and latency.";
+    }
+    else if (string_pos("gpu-b", _run_id) == 1) {
+        var _batch = string_delete(_run_id, 1, 5);
+        _expl = "GPU Backend with Batch Size " + _batch + ".\nLarger batches increase throughput but may increase latency per token.";
+    }
+    else if (string_pos("power_only", _run_id) == 1) {
+        _expl = "Baseline Power Measurement.\nNo inference running, just measuring idle/background power.";
+    }
+    else if (_run_id == "gpu-10") {
+         _expl = "GPU Backend Run.";
+    }
+    
+    return _expl;
+}
+
+function draw_code_explanation_panel(_x, _y, _w, _h) {
+    draw_set_color(c_dkgray);
+    draw_rectangle(_x, _y, _x + _w, _y + _h, true);
+    
+    draw_set_color(c_white);
+    draw_text(_x + 10, _y + 10, "Configuration Details:");
+    
+    if (is_undefined(global.explained_run)) {
+        draw_set_color(c_gray);
+        draw_text_ext(_x + 10, _y + 35, "Click a row to see details about its configuration code.", 18, _w - 20);
+    } else {
+        var _r = global.explained_run;
+        draw_set_color(c_aqua);
+        draw_text(_x + 10, _y + 35, _r.run_id);
+        
+        draw_set_color(c_ltgray);
+        var _text = get_run_id_explanation(_r.run_id);
+        draw_text_ext(_x + 10, _y + 60, _text, 18, _w - 20);
+    }
+}
+
 function sort_by_edp(_a, _b) {
     var _edp_a = calculate_edp(_a);
     var _edp_b = calculate_edp(_b);
@@ -92,6 +138,7 @@ function draw_ranking_tab() {
         
         // Interaction
         if (mouse_check_button_pressed(mb_left)) {
+            // Button Click (Selection)
             if (mouse_x >= _btn_x && mouse_x <= _btn_x + _btn_w && mouse_y >= _list_y && mouse_y <= _list_y + _btn_h) {
                 if (_is_sel_1) global.compare_run_1 = undefined;
                 else if (_is_sel_2) global.compare_run_2 = undefined;
@@ -104,6 +151,10 @@ function draw_ranking_tab() {
                     }
                 }
             }
+            // Row Click (Explanation) - Check if clicked anywhere in the row BUT not the button
+            else if (mouse_x >= _x && mouse_x <= _x + _list_w && mouse_y >= _list_y && mouse_y <= _list_y + 20) {
+                 global.explained_run = _r;
+            }
         }
         
         _list_y += 25;
@@ -113,6 +164,12 @@ function draw_ranking_tab() {
     draw_set_color(c_gray);
     draw_text(_x + 10, _list_y + 10, "* EDP = 0 indicates missing energy data (0 Joules measured).");
     
-    // --- RIGHT: Comparison Panel ---
-    draw_comparison_panel(_panel_x, _y, _panel_w, _total_h);
+    // --- RIGHT: Comparison Panel & Explanation ---
+    // Split Right Panel: Top 60% Comparison, Bottom 40% Explanation
+    var _comp_h = _total_h * 0.6;
+    var _expl_h = _total_h * 0.4;
+    var _expl_y = _y + _comp_h;
+    
+    draw_comparison_panel(_panel_x, _y, _panel_w, _comp_h);
+    draw_code_explanation_panel(_panel_x, _expl_y, _panel_w, _expl_h);
 }
