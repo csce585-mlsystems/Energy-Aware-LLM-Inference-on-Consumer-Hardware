@@ -101,7 +101,7 @@ For Python users: Please use [uv](https://docs.astral.sh/uv/) as your package ma
 ## Demo
 - **Interactive Dashboard:**
   I have built a custom GameMaker dashboard to visualize power and latency data collected from inference runs.
-  Video Demo: [Demonstration Video](https://youtu.be/Q8KjrCSerJU)
+  Video Demo: [Demonstration Video](https://youtu.be/LRHLlwpiLdg)
 
   *To run the dashboard locally:*
   1. Start the Python server: `uv run python src/demo_server.py`
