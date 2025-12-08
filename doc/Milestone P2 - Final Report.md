@@ -213,7 +213,7 @@ All code, data, and documentation are included in the project repository.
 
 [2] **llama.cpp**: Inference of Meta's LLaMA model in pure C/C++. Gerganov, G., 2023. https://github.com/ggerganov/llama.cpp
 
-[3] **Race-to-Sleep Energy Management**: Lebeck, A. R., et al. "Power Aware Page Allocation." ASPLOS 2000.
+[3] **Race-to-Sleep Energy Management**: Lebeck, A. R., et al. "Power Aware Page Allocation." ASPLOS 2000. https://www3.cs.stonybrook.edu/~anshul/courses/cse591_s16/power_page.pdf
 
 [4] **NVIDIA Management Library (NVML)**: NVIDIA Corporation. https://developer.nvidia.com/nvidia-management-library-nvml
 
