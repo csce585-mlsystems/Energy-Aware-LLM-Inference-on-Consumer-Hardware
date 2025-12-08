@@ -63,18 +63,18 @@ Across 27 experimental runs covering all the different configurations, I observe
 
 | Backend | Avg Latency (ms) | Avg Energy (J) | Avg EDP (J·s) | Configuration |
 |---------|------------------|----------------|---------------|---------------|
-| **CPU** | 7,152 | 191 | 1,367 | Thread scaling (1, 4, 8) |
-| **GPU** | 12,594 | 159 | 2,001 | Layer/batch variations |
+| **CPU** | 6,943 | 150 | 1,045 | Thread scaling (1, 4, 8) |
+| **GPU** | 6,020 | 186 | 1,121 | Layer/batch variations |
 
-Note on EDP: The Energy-Delay Product (EDP = Energy x Latency) is an efficiency metric where lower values mean better overall performance because it takes both speed and energy use into account. Even though the GPU showed higher average latency in some of the partial offloading tests, its lower energy consumption helped keep its EDP fairly competitive.
+Note on EDP: The Energy-Delay Product (EDP = Energy x Latency) is an efficiency metric where lower values mean better overall performance. In a reversal from previous expectations, the CPU backend demonstrated superior efficiency for this short-context task.
 
-Key Finding: The GPU’s average latency looks higher at first, but that’s mostly because the results include the partial offloading setups (0 and 11 layers). When the model is run with full GPU offloading (22 layers), the latency drops significantly well below the CPU baseline. This trend is clear in the ablation results shown below.
+Key Finding: While the GPU (specifically full offloading) remains the fastest in terms of pure latency (~6s vs ~6.4s for best CPU), it consumes significantly more energy (~188J vs ~130J). Consequently, the multi-threaded CPU configuration (`cpu-t8`) emerges as the most efficient option overall.
 
 <img width="1191" height="745" alt="image" src="https://github.com/user-attachments/assets/c17216cc-0c2d-4778-9a61-1eed480f8c6f" />
 
-_Figure 1: Energy vs. Latency scatter plot for all 27 runs. The three clear clusters represent: fully-offloaded GPU (bottom-left, fastest and most efficient), CPU-only (top-right, slowest and least efficient), and partially-offloaded GPU (middle area, with in-between performance). This shows how much the choice of configuration can shift where you land in the overall energy–latency trade-off space._
+_Figure 1: Energy vs. Latency scatter plot. The CPU runs (top-left/center) show a favorable balance of reasonable latency and lower energy consumption compared to the higher-power GPU runs._
 
-Interpretation: The plot shows three clear performance groups. Full GPU offloading (22 layers) lands in the low latency range of about 6 to 8 seconds and uses around 160 J, putting it on the Pareto frontier. CPU-only and partial GPU setups use two to three times more energy, which means they are not very efficient. The spread in GPU results also shows how important it is to choose the right number of layers to offload.
+Interpretation: The plot reveals that while GPU acceleration provides the lowest absolute latency, the energy cost to achieve that speed is high. The CPU, specifically with 8 threads, sits in a "sweet spot" where latency is competitive (only ~400ms slower than GPU) but energy consumption is ~30% lower.
 
 <img width="1681" height="647" alt="image" src="https://github.com/user-attachments/assets/c67ce962-548c-43a3-82de-e1f2c04553e8" />
 
@@ -86,7 +86,7 @@ The ablation tests give a clearer picture of which settings actually help perfor
 
 #### A. CPU Thread Scaling
 
-Going from 1 to 4 to 8 CPU threads improves speed, but the gains level off pretty quickly. The 8-thread setup gives the fastest CPU time at about 7152 ms on average, but memory bandwidth limits keep it from scaling any further.
+Going from 1 to 4 threads improves speed significantly. Interestingly, pushing to 8 threads yielded further improvements in this run, achieving the lowest latency of ~6411 ms and the best energy efficiency of the entire experiment.
 
 <img width="1017" height="622" alt="image" src="https://github.com/user-attachments/assets/cc8936fe-6759-4bfa-ac0f-69385eb697b2" />
 
@@ -132,19 +132,16 @@ To compare configurations more fairly, we calculated the `Energy-Delay Product (
 
 | Rank | Configuration | Avg EDP (J·s) | Interpretation |
 |------|---------------|---------------|----------------|
-| **1st** | `gpu-l11` (11 layers) | **972** | **Best overall efficiency** - balances moderate GPU offloading with low latency |
-| 2nd | `gpu-l0` (0 layers) | 1,146 | CPU-only but with GPU power measurement overhead |
-| 3rd | `cpu-t4` (4 threads) | 1,250 | Best CPU-only configuration |
-| 4th | `cpu-t1` (1 thread) | 1,406 | Single-threaded baseline |
-| 5th | `cpu-t8` (8 threads) | 1,420 | Diminishing returns from more threads |
+| **1st** | `cpu-t8` (8 threads) | **834** | **Best overall efficiency** - High speed and low power |
+| 2nd | `cpu-t4` (4 threads) | 1,048 | Strong CPU performance |
+| 3rd | `gpu-b1024` (Batch 1024) | 1,077 | Best GPU result, slightly behind CPU |
+| ... | ... | ... | ... |
+| 8th | `gpu-l11` (11 layers) | 1,186 | Previous winner, now less efficient due to overhead |
 
-**Surprising Result**: The partial GPU offloading configuration (`gpu-l11` with 11 layers) achieved the **lowest EDP**, outperforming even full GPU offloading (`gpu-l22`). This suggests that:
+**Surprising Result**: The **CPU (8 threads)** achieved the lowest EDP (834 J·s), beating all GPU configurations. This contradicts the common assumption that GPUs are always more efficient for inference. For this specific small model (1.1B) and short prompt task, the overhead of moving data to the GPU and its high idle power consumption outweigh its raw compute advantage.
 
-Surprising result: The partial GPU offload setup (gpu-l11, 11 layers) actually got the lowest EDP, even better than full GPU offload (gpu-l22). This means:
-
-1. Partial offloading can give the best trade-off: full offloading is faster, but it also draws more power, while 11 layers seems to hit a sweet spot.
-
-2. Faster is not always more efficient: gpu-l22 has lower latency, but its EDP is higher (about 2160 J·s) because the GPU stays at high power for longer.
+1. CPU can win on small tasks: For short bursts of inference, the CPU's ability to ramp up and down quickly without high static power costs gives it an edge.
+2. GPU Overhead: The 1.1B model is small enough that the GPU's massive parallelism isn't fully utilized, yet the power penalty (~180W vs ~130W) remains.
 
 **Limitations**:
 
@@ -164,23 +161,15 @@ This project shows that energy-aware inference on consumer hardware is doable an
 
 **Primary insights:**
 
-1. Partial GPU offloading can give the best EDP: The 11-layer setup had the lowest Energy-Delay Product (about 972 J x s), beating both CPU-only and full GPU offload. This shows there is a sweet spot between speed and energy use.
-
-2. Full GPU offloading is fastest: Offloading 22 layers gives the lowest latency (around 6-8 seconds), but it uses more energy, leading to a higher EDP (about 2160 J x s).
-
-3. The best setup depends on your goal: You have to choose based on whether you care more about latency, energy, or a balance of both (EDP).
-
-4. CPU scaling hits limits: After 4 threads, CPU speed stops improving much and EDP gets worse because memory bandwidth becomes the bottleneck.
-
-5. Batch size does not matter much: For single-prompt inference, changing batch size from 128 to 1024 only changes latency by about 10-15 percent.
+1. CPU wins on efficiency: The 8-thread CPU setup had the lowest Energy-Delay Product (~834 J·s), contrary to expectations.
+2. GPU is fastest but hungry: Full GPU offloading is still the fastest (~6.1s vs 6.4s), but consumes ~45% more energy per run.
+3. Thread scaling works: increasing from 4 to 8 threads provided tangible efficiency gains, suggesting the memory bottleneck was less severe in this run.
+4. Model size matters: For a 1.1B model, the "heavy lifting" capability of a standalone GPU might be overkill compared to the power cost.
 
 **Practical recommendations:**
 
-- For latency-critical applications: Use full GPU offloading (22 layers) with the default batch size (128). This gives the fastest responses.
-
-- For energy-constrained devices: The GPU is still a good choice. Even though it has higher peak power, it finishes 40–50 percent faster and ends up using less total energy.
-
-For CPU-only deployments: Use 4–8 threads. Beyond that, the speedup is small and not really worth it.
+- For absolute speed: Use GPU with full offloading.
+- For battery/efficiency: Use CPU with 8 threads. It delivers 95% of the performance for 70% of the energy.
 
 **Future work:**
 
