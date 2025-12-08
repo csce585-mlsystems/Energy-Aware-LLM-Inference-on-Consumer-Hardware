@@ -90,9 +90,9 @@ Going from 1 to 4 threads improves speed significantly. Interestingly, pushing t
 
 <img width="1017" height="622" alt="image" src="https://github.com/user-attachments/assets/cc8936fe-6759-4bfa-ac0f-69385eb697b2" />
 
-_Figure 3: CPU thread scaling results. Latency drops sharply when going from 1 to 4 threads (about 40 percent faster), but there is less than 10 percent improvement from 4 to 8 threads, suggesting the system is limited by memory bandwidth, not compute._
+_Figure 3: CPU thread scaling results. Latency drops significantly when moving from 1 to 4 threads. Moving to 8 threads provides an additional speedup and, crucially, achieves the best energy efficiency (lowest EDP) in this set of experiments, reducing latency to ~6,411 ms._
 
-Interpretation: The smaller gains past 4 threads suggest that TinyLlama inference on this consumer machine is limited more by memory than by compute. Even if we add more CPU threads, they still have to wait on DDR4 memory (about 25 GB/s) to read the model weights from DRAM during autoregressive decoding, so performance does not scale much further.
+Interpretation: The results indicate that for this workload, the CPU scales effectively up to 8 threads. Unlike previous runs where memory bandwidth seemed to bottleneck performance past 4 threads, this "cleaner" run shows that utilizing more cores allowed the CPU to finish the task faster and enter a low-power state sooner, maximizing efficiency.
 
 #### B. GPU Layer Offloading
 Offloading layers to the GPU turned out to be the single most effective optimization in our experiments. My results clearly show that moving more layers onto the GPU gives a big boost in performance.
@@ -105,9 +105,9 @@ Offloading layers to the GPU turned out to be the single most effective optimiza
 
 <img width="971" height="631" alt="image" src="https://github.com/user-attachments/assets/cc7f063b-ea51-4b15-828e-e3a4570e5a4e" />
 
-_Figure 4: GPU layer offloading ablation study. Latency drops almost linearly as more transformer layers are offloaded to the GPU. Going from 0 to 22 layers cuts latency by about 2 to 3 times and also reduces energy use, making this the most impactful optimization in our experiments._
+_Figure 4: GPU layer offloading ablation study. While offloading more layers linearly reduces latency, the high power cost of the GPU results in a higher EDP compared to the optimized CPU-only run. The "partial offload" (11 layers) strategy, which was previously promising, proved less efficient here due to the overhead of keeping both the CPU and high-power GPU active._
 
-Interpretation: The almost linear drop in latency as more layers are offloaded shows that the GPU’s tensor cores, backed by fast GDDR6 memory (about 360 GB/s), handle transformer computations much more efficiently than the CPU’s SIMD units. This backs up the common practice in LLM deployment of using the GPU as much as possible whenever it is available.
+Interpretation: The linear drop in latency confirms the GPU's superior raw throughput. However, the efficiency metric (EDP) suffers because the GPU's power consumption (~188J total) outweighs the time saved. This highlights a critical trade-off: offloading makes the model faster, but on this specific consumer grade hardware for short tasks, it makes it less energy-efficient.
 
 #### C. Batch Size Scaling
 
