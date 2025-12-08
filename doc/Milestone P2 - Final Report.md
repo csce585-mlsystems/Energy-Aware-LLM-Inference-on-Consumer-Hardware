@@ -181,7 +181,16 @@ This project includes:
 
 4. Reproducible pipeline: An automated experiment runner (run_pipeline.ps1) plus analysis scripts
 
-All code, data, and documentation are included in the project repository.## References
+## Demo
+- **Interactive Dashboard:**
+  I have built a custom GameMaker dashboard to visualize power and latency data collected from inference runs.
+  Video Demo: [Demonstration Video](https://youtu.be/LRHLlwpiLdg)
+
+  *To run the dashboard locally:*
+  1. Start the Python server: `uv run python src/demo_server.py`
+  2. Open `EnergyDashboard/EnergyDashboard.yyp` in GameMaker and click Run.
+
+## References
 
 [1] **TinyLlama**: An Open-Source Small Language Model,. Zhang et al., 2024. https://github.com/jzhang38/TinyLlama
 
