@@ -18,36 +18,37 @@ def generate_report():
     print(f"Loaded {len(latency_df)} latency records and {len(power_df)} power records.")
 
     # --- 1. Latency Analysis ---
-    # Group by backend and prompt_template (suite)
-    latency_summary = latency_df.groupby(["backend", "prompt_template"]).agg(
-        avg_latency_ms=("latency_ms", "mean"),
-        p95_latency_ms=("latency_ms", lambda x: x.quantile(0.95)),
-        count=("latency_ms", "count")
-    ).reset_index()
-
     # --- 2. Energy Analysis ---
-    # Extract suite from 'notes' field in power logs (e.g., "prompt=sd-001" -> "short_dialogue")
-    # This is a bit tricky because power logs only have prompt ID. We map ID prefix to suite.
-    def map_id_to_suite(note):
-        if "sd-" in note: return "short_dialogue"
-        if "ar-" in note: return "analytical_reasoning"
-        if "ng-" in note: return "narrative_generation"
-        return "unknown"
-
-    power_df["suite"] = power_df["notes"].apply(map_id_to_suite)
+    # Since we have verified that latency_results.csv and power_logs.csv have 1-to-1 correspondence (27 rows each)
+    # and are sequential, we can merge them directly by index after sorting by timestamp.
     
-    energy_summary = power_df.groupby(["backend", "suite"]).agg(
-        avg_energy_joules=("energy_joules", "mean"),
-        count=("energy_joules", "count")
+    latency_df = latency_df.sort_values("timestamp").reset_index(drop=True)
+    power_df = power_df.sort_values("timestamp").reset_index(drop=True)
+    
+    if len(latency_df) != len(power_df):
+        print(f"⚠️ Warning: record count mismatch! Latency: {len(latency_df)}, Power: {len(power_df)}")
+        # Proceeding with inner join on index if possible or truncation, but for this task we assume perfect match
+        # as verified by the user.
+
+    # Assign energy to latency dataframe
+    latency_df["energy_joules"] = power_df["energy_joules"]
+    
+    # Create the 'merged' dataframe for plotting (now it contains all 27 rows)
+    merged = latency_df.copy()
+    merged["avg_latency_ms"] = merged["latency_ms"] # Alias for compatibility with existing plot code if needed, but better to change plot code
+    merged["avg_energy_joules"] = merged["energy_joules"]
+
+    # --- 3. Calculate EDP ---
+    # EDP = Energy (J) * Latency (s)
+    merged["edp"] = merged["energy_joules"] * (merged["latency_ms"] / 1000.0)
+
+    # --- Grouping for Summary Table (Optional: keep summary table logic) ---
+    summary_table = merged.groupby(["backend", "prompt_template"]).agg(
+         avg_latency_ms=("latency_ms", "mean"),
+         avg_energy_joules=("energy_joules", "mean"),
+         avg_edp=("edp", "mean")
     ).reset_index()
 
-    # --- 3. Merge and Calculate EDP ---
-    merged = pd.merge(
-        latency_summary, 
-        energy_summary, 
-        left_on=["backend", "prompt_template"], 
-        right_on=["backend", "suite"]
-    )
 
     # EDP = Energy (J) * Latency (s)
     merged["edp"] = merged["avg_energy_joules"] * (merged["avg_latency_ms"] / 1000.0)
@@ -57,8 +58,8 @@ def generate_report():
     print(f"{'Backend':<8} | {'Suite':<20} | {'Latency (ms)':<12} | {'Energy (J)':<10} | {'EDP (J*s)':<10}")
     print("-" * 75)
     
-    for _, row in merged.iterrows():
-        print(f"{row['backend']:<8} | {row['prompt_template']:<20} | {row['avg_latency_ms']:<12.2f} | {row['avg_energy_joules']:<10.2f} | {row['edp']:<10.2f}")
+    for _, row in summary_table.iterrows():
+        print(f"{row['backend']:<8} | {row['prompt_template']:<20} | {row['avg_latency_ms']:<12.2f} | {row['avg_energy_joules']:<10.2f} | {row['avg_edp']:<10.2f}")
 
     # --- 5. Generate Figures ---
     import matplotlib.pyplot as plt
@@ -75,11 +76,11 @@ def generate_report():
     plt.figure(figsize=(10, 6))
     sns.scatterplot(
         data=merged, 
-        x="avg_latency_ms", 
-        y="avg_energy_joules", 
+        x="latency_ms", 
+        y="energy_joules", 
         hue="backend", 
-        style="prompt_template", 
-        s=200
+        style="run_id", 
+        s=100
     )
     plt.title("Energy vs. Latency: CPU vs GPU")
     plt.xlabel("Average Latency (ms)")

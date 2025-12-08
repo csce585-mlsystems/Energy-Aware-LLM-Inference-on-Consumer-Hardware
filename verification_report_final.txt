@@ -1,0 +1,56 @@
+--- Verifying Data against Report ---
+Latency File: 27 records
+Power File: 27 records
+
+>>> 3.1 Baseline Performance (CPU vs GPU)
+           latency_ms  energy_joules          EDP
+backend                                          
+cpu       7152.378889     191.199789  1367.533336
+gpu      12594.091778     158.940918  2001.716512
+
+Report claimed: CPU ~7152ms, 191J, 1367 EDP | GPU ~12594ms, 159J, 2001 EDP
+--------------------------------------------------
+
+>>> Ablation Studies
+Latency per Config (Run ID):
+run_id
+cpu-t1        8155.864667
+cpu-t4        6515.985000
+cpu-t8        6785.287000
+gpu-b1024    13894.238000
+gpu-b128     11247.665000
+gpu-b512     23526.814333
+gpu-l0        6539.851000
+gpu-l11       6435.265333
+gpu-l22      13920.717000
+Name: latency_ms, dtype: float64
+
+Detailed Latency Data:
+       run_id  latency_ms
+0      cpu-t1    8586.571
+1      cpu-t1    7920.403
+2      cpu-t1    7960.620
+3      cpu-t4    6594.658
+4      cpu-t4    6487.816
+5      cpu-t4    6465.481
+6      cpu-t8    6930.402
+7      cpu-t8    7128.858
+8      cpu-t8    6296.601
+9      gpu-l0    6534.720
+10     gpu-l0    6612.758
+11     gpu-l0    6472.075
+12    gpu-l11    6414.548
+13    gpu-l11    6562.040
+14    gpu-l11    6329.208
+15    gpu-l22   20369.243
+16    gpu-l22   14812.894
+17    gpu-l22    6580.014
+18   gpu-b128    6053.537
+19   gpu-b128   12473.149
+20   gpu-b128   15216.309
+21   gpu-b512   19867.628
+22   gpu-b512   27055.427
+23   gpu-b512   23657.388
+24  gpu-b1024   13573.822
+25  gpu-b1024   17184.037
+26  gpu-b1024   10924.855
